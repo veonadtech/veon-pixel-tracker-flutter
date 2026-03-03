@@ -10,3 +10,6 @@ local.properties
 app/build/
 app/.cxx/
 .cxx/
+
+# Generated plugins
+app/src/main/java/io/flutter/plugins/

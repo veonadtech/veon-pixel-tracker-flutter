@@ -77,3 +77,17 @@ app.*.symbols
 
 # Exceptions to above
 !**/ios/**/default.perspectivev3
+
+# Android generated
+**/android/app/src/main/java/io/flutter/plugins/
+**/android/app/src/main/java/io/flutter/plugins/**/*.java
+
+# iOS ephemeral
+**/ios/**/Flutter/ephemeral/
+**/ios/**/Flutter/ephemeral/**
+
+# Xcode shared data (кроме схем)
+**/xcshareddata/
+**/xcshareddata/**
+!**/xcshareddata/xcschemes/
+!**/xcshareddata/xcschemes/*.xcscheme

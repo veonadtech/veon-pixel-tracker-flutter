@@ -23,3 +23,12 @@ Podfile.lock
 # Build
 DerivedData/
 .build/
+
+# Flutter ephemeral
+Flutter/ephemeral/
+Flutter/ephemeral/**
+
+# Xcode workspace settings
+Runner.xcworkspace/xcshareddata/
+Runner.xcworkspace/xcshareddata/**
+!Runner.xcworkspace/xcshareddata/xcschemes/
