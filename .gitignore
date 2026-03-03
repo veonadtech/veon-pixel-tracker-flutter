@@ -1,0 +1,79 @@
+# Flutter/Dart
+.dart_tool/
+.dart_tool/**
+.packages
+pubspec.lock
+build/
+flutter_*.log
+**.log
+.flutter-plugins
+.flutter-plugins-dependencies
+.dart-tool/**
+
+# Android Studio / IntelliJ
+.idea/
+.idea/**
+*.iml
+*.iws
+*.ipr
+.classpath
+.project
+.settings/
+.settings/**
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+
+# VS Code
+.vscode/
+.vscode/**
+*.code-workspace
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Android
+**/android/**/.gradle/
+**/android/**/build/
+**/android/**/local.properties
+**/android/**/*.iml
+**/android/**/captures/
+**/android/**/.cxx/
+**/android/**/gradle/
+**/android/**/gradlew
+**/android/**/gradlew.bat
+
+# iOS
+**/ios/**/.generated/
+**/ios/**/Flutter/Generated.xcconfig
+**/ios/**/Flutter/flutter_export_environment.sh
+**/ios/**/Pods/
+**/ios/**/Podfile.lock
+**/ios/**/DerivedData/
+**/ios/**/*.mode1v3
+**/ios/**/*.mode2v3
+**/ios/**/*.perspectivev3
+**/ios/**/*.xcuserstate
+**/ios/**/xcuserdata/
+**/ios/**/Runner/GeneratedPluginRegistrant.*
+
+# Coverage
+coverage/
+*.gcda
+*.gcno
+*.lcov
+
+# Symbols
+app.*.symbols
+
+# Exceptions to above
+!**/ios/**/default.perspectivev3

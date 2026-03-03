@@ -1,0 +1,12 @@
+# Gradle files
+.gradle/
+build/
+*/build/
+!/**/*/build/
+local.properties
+*.iml
+
+# Generated files
+app/build/
+app/.cxx/
+.cxx/

@@ -1,0 +1,44 @@
+# Flutter/Dart
+.dart_tool/
+.packages
+pubspec.lock
+build/
+flutter_*.log
+.flutter-plugins
+.flutter-plugins-dependencies
+**/android/app/**/build/
+**/android/app/**/.cxx/
+
+# Android
+**/android/app/**/*.iml
+**/android/app/**/local.properties
+**/android/app/**/gradle/
+**/android/app/**/gradlew
+**/android/app/**/gradlew.bat
+
+# iOS
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Pods/
+**/ios/Podfile.lock
+**/ios/Runner/GeneratedPluginRegistrant.*
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+.ipr
+.classpath
+.project
+.settings/
+**/android/.idea/
+**/ios/*.xcuserstate
+**/ios/xcuserdata/
+
+# macOS
+.DS_Store
+
+# Тестовые файлы
+coverage/
+*.log

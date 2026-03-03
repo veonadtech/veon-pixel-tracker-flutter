@@ -1,0 +1,24 @@
+# Gradle
+.gradle/
+build/
+*/build/
+!/**/*/build/
+captures/
+.gradle/**
+build/**
+local.properties
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+.idea/
+.idea/**
+.cxx/
+*.cxx
+*.cxx/**
+gradle/
+gradle-wrapper.jar
+gradlew
+gradlew.bat

@@ -1,0 +1,25 @@
+# Xcode
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+xcuserdata/
+*.xcuserstate
+project.xcworkspace/
+xcshareddata/xcschemes/
+
+# Flutter
+Flutter/Generated.xcconfig
+Flutter/flutter_export_environment.sh
+Runner/GeneratedPluginRegistrant.*
+
+# CocoaPods
+Pods/
+Podfile.lock
+.swiftpm/
+.swiftpm/**
+.swiftpm/xcode/package.xcworkspace
+.swiftpm/xcode/xcuserdata
+
+# Build
+DerivedData/
+.build/
