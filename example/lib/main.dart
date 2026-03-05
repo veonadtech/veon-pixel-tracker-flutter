@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:veon_pixel_tracker_flutter/veon_pixel_tracker_flutter.dart';
+import 'package:veon_pixel_tracker_flutter/veon_pixel_tracker.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,14 +18,21 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
-    /// слушаем результат инициализации
-    VeonPixelTracker.listenInitialization((status) {
-      print("PixelTracker init status: $status");
+    VeonPixelTracker.events.listen((event) {
+
+      if (event["event"] == "initialized") {
+
+        if (event["status"] == "success") {
+          print("PixelTracker initialized");
+        } else {
+          print("PixelTracker failed: ${event["message"]}");
+        }
+
+      }
     });
 
-    /// запускаем SDK
     VeonPixelTracker.initialize(
-      baseUrl: "https://prebid.veonadx.com/openrtb2/auction",
+      baseUrl: "https://pixel-tracker.veonadtech.com/v1/pixel-event",
       debug: true,
     );
   }
@@ -34,9 +41,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return const MaterialApp(
       home: Scaffold(
-        body: Center(
-          child: Text('Pixel Tracker Example'),
-        ),
+        body: Center(child: Text("PixelTracker Demo")),
       ),
     );
   }
