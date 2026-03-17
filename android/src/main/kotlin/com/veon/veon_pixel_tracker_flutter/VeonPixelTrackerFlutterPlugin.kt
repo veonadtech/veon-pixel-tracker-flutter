@@ -36,7 +36,6 @@ class VeonPixelTrackerFlutterPlugin :
     private var activity: Activity? = null
     private var binaryMessenger: BinaryMessenger? = null
 
-    // Хранилище активных PixelHandle для доступа по ID
     private val pixelHandles = ConcurrentHashMap<String, PixelHandle>()
     private val pixelViewFactories = ConcurrentHashMap<String, PixelTrackerViewFactory>()
 
@@ -64,7 +63,6 @@ class VeonPixelTrackerFlutterPlugin :
             }
         })
 
-        // Регистрируем фабрику PlatformView для создания пикселей как виджетов
         registerPixelViewFactory(binding)
     }
 
@@ -135,7 +133,6 @@ class VeonPixelTrackerFlutterPlugin :
     }
 
     private fun handleShutdown(result: Result) {
-        // Очищаем все активные пиксели
         pixelHandles.values.forEach { it.destroy() }
         pixelHandles.clear()
 
@@ -193,10 +190,8 @@ class VeonPixelTrackerFlutterPlugin :
             return
         }
 
-        // Сохраняем PixelHandle
         pixelHandles[pixelId] = pixelHandle
 
-        // Устанавливаем слушатель событий
         pixelHandle.setEventListener(createPixelEventListener(pixelId))
 
         result.success(mapOf(
@@ -379,11 +374,11 @@ class VeonPixelTrackerFlutterPlugin :
         methodChannel.setMethodCallHandler(null)
         eventChannel.setStreamHandler(null)
 
-        // Очищаем все ресурсы
         pixelHandles.values.forEach { it.destroy() }
         pixelHandles.clear()
         pixelViewFactories.clear()
         eventSink = null
         binaryMessenger = null
     }
+
 }

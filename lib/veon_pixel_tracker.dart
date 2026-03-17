@@ -7,7 +7,6 @@ export 'src/core/pixel_handle.dart';
 export 'src/models/pixel_stats.dart';
 export 'src/models/pixel_event.dart';
 export 'src/widgets/pixel_tracker_view.dart';
-//import 'package:veon_pixel_tracker_flutter/src/core/pixel_handle.dart';
 
 class VeonPixelTracker {
   static const MethodChannel _methodChannel =
@@ -83,4 +82,6 @@ class VeonPixelTracker {
       throw Exception("Failed to create pixel: ${e.message}");
     }
   }
+
 }
+

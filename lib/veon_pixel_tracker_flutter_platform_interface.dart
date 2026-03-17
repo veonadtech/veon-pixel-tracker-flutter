@@ -3,6 +3,7 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'veon_pixel_tracker_flutter_method_channel.dart';
 
 abstract class VeonPixelTrackerFlutterPlatform extends PlatformInterface {
+
   /// Constructs a VeonPixelTrackerFlutterPlatform.
   VeonPixelTrackerFlutterPlatform() : super(token: _token);
 
@@ -26,4 +27,5 @@ abstract class VeonPixelTrackerFlutterPlatform extends PlatformInterface {
   Future<String?> getPlatformVersion() {
     throw UnimplementedError('platformVersion() has not been implemented.');
   }
+
 }

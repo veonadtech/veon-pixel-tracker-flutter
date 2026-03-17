@@ -19,6 +19,7 @@ class _MyAppState extends State<MyApp> {
   bool _isInitialized = false;
   int _refreshTimeSeconds = 5;
   final int _pixelSize = 40;
+  final int _visibilityThreshold = 1;
 
   @override
   void initState() {
@@ -69,8 +70,12 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _updateStats() async {
     if (_pixelHandle != null) {
-      final stats = await _pixelHandle!.getStats();
-      setState(() => _currentStats = stats);
+      try {
+        final stats = await _pixelHandle!.getStats();
+        setState(() => _currentStats = stats);
+      } catch (e) {
+        print('Error getting stats: $e');
+      }
     }
   }
 
@@ -94,40 +99,46 @@ class _MyAppState extends State<MyApp> {
             ? const Center(child: CircularProgressIndicator())
             : Column(
           children: [
-            // 🔥 ФИКСИРОВАННАЯ ВЕРХНЯЯ ЧАСТЬ (НЕ СКРОЛЛИТСЯ)
             _buildStatusCard(),
             _buildControls(),
             _buildStatsCard(),
 
-            // 🔥 СКРОЛЛИРУЕМАЯ НИЖНЯЯ ЧАСТЬ
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   children: [
                     _buildEventsList(),
-                    // Пиксель внизу (для скролла)
                     Container(
                       height: MediaQuery.of(context).size.height * 2,
                       child: Stack(
                         children: [
                           Positioned(
-                            top: MediaQuery.of(context).size.height * 1.5,
+                            top: MediaQuery.of(context).size.height * 1,
                             left: MediaQuery.of(context).size.width / 2 - _pixelSize / 2,
                             child: PixelTrackerView(
                               pixelId: 'demo_pixel_1',
                               refreshTimeSeconds: _refreshTimeSeconds,
                               pixelSize: _pixelSize,
-                              visibilityThreshold: 30,
+                              visibilityThreshold: _visibilityThreshold,
                               color: '#FF0000',
+                              onPlatformViewCreated: (handle) {
+                                setState(() {
+                                  _pixelHandle = handle;
+                                });
+                                _addEvent('📱 Pixel handle received');
+                              },
                               onEvent: (event) {
                                 if (event.isAppearance) {
                                   _addEvent('✅ Pixel VISIBLE');
                                   _updateStats();
                                 } else if (event.isDisappearance) {
                                   _addEvent('👻 Pixel HIDDEN');
+                                  _updateStats();
                                 } else if (event.isRefresh) {
                                   _addEvent('🔄 Pixel REFRESH');
                                   _updateStats();
+                                } else if (event.isError) {
+                                  _addEvent('❌ Error: ${event.error}');
                                 }
                               },
                             ),
@@ -135,6 +146,7 @@ class _MyAppState extends State<MyApp> {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 50),
                   ],
                 ),
               ),
@@ -199,8 +211,8 @@ class _MyAppState extends State<MyApp> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: () {
-                    _pixelHandle?.start();
+                  onPressed: _pixelHandle == null ? null : () {
+                    _pixelHandle!.start();
                     _addEvent('▶️ Pixel started');
                   },
                   style: ElevatedButton.styleFrom(
@@ -210,8 +222,8 @@ class _MyAppState extends State<MyApp> {
                   child: const Text('Start'),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    _pixelHandle?.stop();
+                  onPressed: _pixelHandle == null ? null : () {
+                    _pixelHandle!.stop();
                     _addEvent('⏸️ Pixel stopped');
                   },
                   style: ElevatedButton.styleFrom(
@@ -221,8 +233,8 @@ class _MyAppState extends State<MyApp> {
                   child: const Text('Stop'),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    _pixelHandle?.destroy();
+                  onPressed: _pixelHandle == null ? null : () {
+                    _pixelHandle!.destroy();
                     setState(() => _pixelHandle = null);
                     _addEvent('🗑️ Pixel destroyed');
                   },
@@ -241,7 +253,7 @@ class _MyAppState extends State<MyApp> {
                 const Text('Refresh time: '),
                 IconButton(
                   icon: const Icon(Icons.remove_circle, color: Colors.red),
-                  onPressed: _refreshTimeSeconds <= 1
+                  onPressed: _pixelHandle == null || _refreshTimeSeconds <= 0
                       ? null
                       : () {
                     setState(() => _refreshTimeSeconds--);
@@ -262,7 +274,7 @@ class _MyAppState extends State<MyApp> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.add_circle, color: Colors.green),
-                  onPressed: () {
+                  onPressed: _pixelHandle == null ? null : () {
                     setState(() => _refreshTimeSeconds++);
                     _pixelHandle?.updateRefreshTime(_refreshTimeSeconds);
                     _addEvent('⏱️ Refresh time: ${_refreshTimeSeconds}s');
@@ -382,4 +394,5 @@ class _MyAppState extends State<MyApp> {
     VeonPixelTracker.shutdown();
     super.dispose();
   }
+
 }

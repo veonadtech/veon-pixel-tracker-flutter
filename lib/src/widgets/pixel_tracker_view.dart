@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:veon_pixel_tracker_flutter/src/models/pixel_event.dart';
+import 'package:veon_pixel_tracker_flutter/src/core/pixel_handle.dart';
 
 class PixelTrackerView extends StatefulWidget {
   final String pixelId;
@@ -11,6 +12,7 @@ class PixelTrackerView extends StatefulWidget {
   final int visibilityThreshold;
   final String? color;
   final Function(PixelEvent)? onEvent;
+  final Function(PixelHandle)? onPlatformViewCreated;
 
   const PixelTrackerView({
     Key? key,
@@ -20,6 +22,7 @@ class PixelTrackerView extends StatefulWidget {
     this.visibilityThreshold = 1,
     this.color,
     this.onEvent,
+    this.onPlatformViewCreated,
   }) : super(key: key);
 
   @override
@@ -29,8 +32,13 @@ class PixelTrackerView extends StatefulWidget {
 class _PixelTrackerViewState extends State<PixelTrackerView> {
   final _eventChannels = <int, EventChannel>{};
   StreamSubscription? _eventSubscription;
+  PixelHandle? _pixelHandle;
 
   void _onPlatformViewCreated(int viewId) {
+    _pixelHandle = PixelHandle(widget.pixelId);
+
+    widget.onPlatformViewCreated?.call(_pixelHandle!);
+
     final eventChannel = EventChannel('veon_pixel_tracker/view_events_$viewId');
     _eventChannels[viewId] = eventChannel;
 
@@ -68,6 +76,8 @@ class _PixelTrackerViewState extends State<PixelTrackerView> {
   void dispose() {
     _eventSubscription?.cancel();
     _eventChannels.clear();
+    _pixelHandle?.destroy();
     super.dispose();
   }
+
 }

@@ -23,4 +23,5 @@ class PixelStats {
 
   /// Get next refresh time in seconds
   int get nextRefreshInSeconds => (nextRefreshInMs / 1000).round();
+
 }

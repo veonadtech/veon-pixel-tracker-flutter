@@ -23,4 +23,5 @@ class PixelEvent {
   String toString() {
     return 'PixelEvent{type: $type, timestamp: $timestamp, error: $error}';
   }
+
 }

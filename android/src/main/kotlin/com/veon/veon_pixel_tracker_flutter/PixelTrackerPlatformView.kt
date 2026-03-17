@@ -108,4 +108,5 @@ class PixelTrackerPlatformView(
         pixelHandle = null
         eventChannel.setStreamHandler(null)
     }
+
 }

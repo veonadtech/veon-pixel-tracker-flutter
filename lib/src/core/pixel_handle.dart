@@ -81,4 +81,5 @@ class PixelHandle {
       throw Exception("Failed to get stats: ${e.message}");
     }
   }
+
 }
