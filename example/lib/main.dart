@@ -36,10 +36,6 @@ class _MyAppState extends State<MyApp> {
 
       final initialized = await VeonPixelTracker.isInitialized();
       setState(() => _isInitialized = initialized);
-
-      if (initialized) {
-        _createPixel();
-      }
     } catch (e) {
       _addEvent('Initialization failed: $e');
     }
@@ -71,26 +67,6 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  Future<void> _createPixel() async {
-    try {
-      _pixelHandle = await VeonPixelTracker.createPixel(
-        pixelId: 'demo_pixel_${DateTime.now().millisecondsSinceEpoch}',
-        refreshTimeSeconds: _refreshTimeSeconds,
-        pixelSize: _pixelSize,
-        visibilityThreshold: 30,
-        color: '#FF0000',
-      );
-
-      await _pixelHandle?.setVisibilityCheckInterval(3);
-      await _pixelHandle?.start();
-
-      _addEvent('Pixel created and started');
-      _updateStats();
-    } catch (e) {
-      _addEvent('Failed to create pixel: $e');
-    }
-  }
-
   Future<void> _updateStats() async {
     if (_pixelHandle != null) {
       final stats = await _pixelHandle!.getStats();
@@ -114,26 +90,55 @@ class _MyAppState extends State<MyApp> {
           backgroundColor: Colors.blue,
           foregroundColor: Colors.white,
         ),
-        body: Column(
+        body: !_isInitialized
+            ? const Center(child: CircularProgressIndicator())
+            : Column(
           children: [
-            if (!_isInitialized)
-              const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: CircularProgressIndicator(),
-              )
-            else
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      _buildStatusCard(),
-                      _buildControls(),
-                      _buildStatsCard(),
-                      _buildEventsList(),
-                    ],
-                  ),
+            // 🔥 ФИКСИРОВАННАЯ ВЕРХНЯЯ ЧАСТЬ (НЕ СКРОЛЛИТСЯ)
+            _buildStatusCard(),
+            _buildControls(),
+            _buildStatsCard(),
+
+            // 🔥 СКРОЛЛИРУЕМАЯ НИЖНЯЯ ЧАСТЬ
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    _buildEventsList(),
+                    // Пиксель внизу (для скролла)
+                    Container(
+                      height: MediaQuery.of(context).size.height * 2,
+                      child: Stack(
+                        children: [
+                          Positioned(
+                            top: MediaQuery.of(context).size.height * 1.5,
+                            left: MediaQuery.of(context).size.width / 2 - _pixelSize / 2,
+                            child: PixelTrackerView(
+                              pixelId: 'demo_pixel_1',
+                              refreshTimeSeconds: _refreshTimeSeconds,
+                              pixelSize: _pixelSize,
+                              visibilityThreshold: 30,
+                              color: '#FF0000',
+                              onEvent: (event) {
+                                if (event.isAppearance) {
+                                  _addEvent('✅ Pixel VISIBLE');
+                                  _updateStats();
+                                } else if (event.isDisappearance) {
+                                  _addEvent('👻 Pixel HIDDEN');
+                                } else if (event.isRefresh) {
+                                  _addEvent('🔄 Pixel REFRESH');
+                                  _updateStats();
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
+            ),
           ],
         ),
       ),
@@ -142,26 +147,35 @@ class _MyAppState extends State<MyApp> {
 
   Widget _buildStatusCard() {
     return Card(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(8),
       child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.all(12),
+        child: Row(
           children: [
-            const Text(
-              'Pixel Status',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
             Container(
               width: _pixelSize.toDouble(),
               height: _pixelSize.toDouble(),
               color: Colors.red,
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Size: ${_pixelSize}px × ${_pixelSize}px',
-              style: const TextStyle(fontSize: 14),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Pixel Tracker',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    'Size: ${_pixelSize}px × ${_pixelSize}px',
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                  Text(
+                    'Position: ↓ Scroll down to see',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -171,23 +185,23 @@ class _MyAppState extends State<MyApp> {
 
   Widget _buildControls() {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      margin: const EdgeInsets.symmetric(horizontal: 8),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Column(
           children: [
             const Text(
               'Controls',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: _pixelHandle == null ? null : () {
+                  onPressed: () {
                     _pixelHandle?.start();
-                    _addEvent('Pixel started');
+                    _addEvent('▶️ Pixel started');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
@@ -196,9 +210,9 @@ class _MyAppState extends State<MyApp> {
                   child: const Text('Start'),
                 ),
                 ElevatedButton(
-                  onPressed: _pixelHandle == null ? null : () {
+                  onPressed: () {
                     _pixelHandle?.stop();
-                    _addEvent('Pixel stopped');
+                    _addEvent('⏸️ Pixel stopped');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange,
@@ -207,10 +221,10 @@ class _MyAppState extends State<MyApp> {
                   child: const Text('Stop'),
                 ),
                 ElevatedButton(
-                  onPressed: _pixelHandle == null ? null : () {
+                  onPressed: () {
                     _pixelHandle?.destroy();
                     setState(() => _pixelHandle = null);
-                    _addEvent('Pixel destroyed');
+                    _addEvent('🗑️ Pixel destroyed');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
@@ -220,28 +234,38 @@ class _MyAppState extends State<MyApp> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text('Refresh time: '),
                 IconButton(
-                  icon: const Icon(Icons.remove_circle),
-                  onPressed: _pixelHandle == null || _refreshTimeSeconds <= 0
+                  icon: const Icon(Icons.remove_circle, color: Colors.red),
+                  onPressed: _refreshTimeSeconds <= 1
                       ? null
                       : () {
                     setState(() => _refreshTimeSeconds--);
                     _pixelHandle?.updateRefreshTime(_refreshTimeSeconds);
-                    _addEvent('Refresh time updated to ${_refreshTimeSeconds}s');
+                    _addEvent('⏱️ Refresh time: ${_refreshTimeSeconds}s');
                   },
                 ),
-                Text('${_refreshTimeSeconds}s'),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${_refreshTimeSeconds}s',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
                 IconButton(
-                  icon: const Icon(Icons.add_circle),
-                  onPressed: _pixelHandle == null ? null : () {
+                  icon: const Icon(Icons.add_circle, color: Colors.green),
+                  onPressed: () {
                     setState(() => _refreshTimeSeconds++);
                     _pixelHandle?.updateRefreshTime(_refreshTimeSeconds);
-                    _addEvent('Refresh time updated to ${_refreshTimeSeconds}s');
+                    _addEvent('⏱️ Refresh time: ${_refreshTimeSeconds}s');
                   },
                 ),
               ],
@@ -254,23 +278,35 @@ class _MyAppState extends State<MyApp> {
 
   Widget _buildStatsCard() {
     return Card(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 8),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
               'Statistics',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             if (_currentStats != null) ...[
-              Text('Total appearances: ${_currentStats!.totalAppearances}'),
-              Text('Currently visible: ${_currentStats!.isCurrentlyVisible ? "Yes" : "No"}'),
-              Text('Refresh enabled: ${_currentStats!.refreshEnabled ? "Yes" : "No"}'),
+              Row(
+                children: [
+                  _buildStatItem('Appearances', '${_currentStats!.totalAppearances}', Colors.blue),
+                  _buildStatItem('Visible', _currentStats!.isCurrentlyVisible ? 'Yes' : 'No',
+                      _currentStats!.isCurrentlyVisible ? Colors.green : Colors.red),
+                  _buildStatItem('Refresh', _currentStats!.refreshEnabled ? 'On' : 'Off',
+                      _currentStats!.refreshEnabled ? Colors.green : Colors.grey),
+                ],
+              ),
               if (_currentStats!.nextRefreshInMs > 0)
-                Text('Next refresh: ${_currentStats!.nextRefreshInSeconds}s'),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    'Next refresh: ${_currentStats!.nextRefreshInSeconds}s',
+                    style: const TextStyle(fontSize: 12, color: Colors.orange),
+                  ),
+                ),
             ] else
               const Text('No stats available'),
           ],
@@ -279,22 +315,44 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
+  Widget _buildStatItem(String label, String value, Color color) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildEventsList() {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Events',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            'Event Log',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Container(
-            height: 200,
+            height: 150,
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
+              border: Border.all(color: Colors.grey.shade300),
               borderRadius: BorderRadius.circular(8),
+              color: Colors.grey.shade50,
             ),
             child: ListView.builder(
               reverse: true,
@@ -303,11 +361,11 @@ class _MyAppState extends State<MyApp> {
                 return Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
-                    vertical: 4,
+                    vertical: 2,
                   ),
                   child: Text(
                     _events[index],
-                    style: const TextStyle(fontSize: 12),
+                    style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
                   ),
                 );
               },

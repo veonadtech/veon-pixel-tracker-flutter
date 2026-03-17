@@ -46,17 +46,21 @@ class _PixelTrackerViewState extends State<PixelTrackerView> {
 
   @override
   Widget build(BuildContext context) {
-    return AndroidView(
-      viewType: 'veon_pixel_tracker_view_default',
-      onPlatformViewCreated: _onPlatformViewCreated,
-      creationParams: {
-        'pixelId': widget.pixelId,
-        'refreshTimeSeconds': widget.refreshTimeSeconds,
-        'pixelSize': widget.pixelSize,
-        'visibilityThreshold': widget.visibilityThreshold,
-        'color': widget.color,
-      },
-      creationParamsCodec: const StandardMessageCodec(),
+    return SizedBox(
+      width: widget.pixelSize.toDouble(),
+      height: widget.pixelSize.toDouble(),
+      child: AndroidView(
+        viewType: 'veon_pixel_tracker_view_default',
+        onPlatformViewCreated: _onPlatformViewCreated,
+        creationParams: {
+          'pixelId': widget.pixelId,
+          'refreshTimeSeconds': widget.refreshTimeSeconds,
+          'pixelSize': widget.pixelSize,
+          'visibilityThreshold': widget.visibilityThreshold,
+          'color': widget.color,
+        },
+        creationParamsCodec: const StandardMessageCodec(),
+      ),
     );
   }
 
@@ -66,18 +70,4 @@ class _PixelTrackerViewState extends State<PixelTrackerView> {
     _eventChannels.clear();
     super.dispose();
   }
-}
-
-/// Pixel event class (если еще не определен)
-class PixelEvent {
-  final String type;
-  final String timestamp;
-  final String? error;
-
-  PixelEvent(this.type, this.timestamp, this.error);
-
-  bool get isAppearance => type == 'appearance';
-  bool get isDisappearance => type == 'disappearance';
-  bool get isRefresh => type == 'refresh';
-  bool get isError => type == 'error';
 }

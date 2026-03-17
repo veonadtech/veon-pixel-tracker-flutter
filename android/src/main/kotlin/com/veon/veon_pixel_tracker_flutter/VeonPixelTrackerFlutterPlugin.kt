@@ -44,7 +44,7 @@ class VeonPixelTrackerFlutterPlugin :
         private const val TAG = "PixelTrackerFlutter"
         private const val METHOD_CHANNEL = "veon_pixel_tracker/sdk"
         private const val EVENT_CHANNEL = "veon_pixel_tracker/events"
-        private const val VIEW_TYPE_PREFIX = "veon_pixel_tracker/view_"
+        private const val VIEW_TYPE = "veon_pixel_tracker_view_default"
     }
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
@@ -74,7 +74,7 @@ class VeonPixelTrackerFlutterPlugin :
         }
         pixelViewFactories["default"] = factory
         binding.platformViewRegistry.registerViewFactory(
-            "${VIEW_TYPE_PREFIX}default",
+            VIEW_TYPE,
             factory
         )
     }
