@@ -1,8 +1,7 @@
 # Veon Pixel Tracker Flutter
-
-Flutter plugin for Veon Pixel Tracker SDK. 
-This plugin allows you to track pixel visibility events in your Flutter applications with 
-the same functionality as the native Android SDK.
+* Flutter plugin for Veon Pixel Tracker SDK. 
+* This plugin allows you to track pixel visibility events in your Flutter applications with 
+* the same functionality as the native Android SDK.
 
 ## Features
 - ✅ Initialize Pixel Tracker SDK with custom configuration
@@ -20,15 +19,20 @@ the same functionality as the native Android SDK.
 * `Java Version` at least `11`
 * 'Kotlin Version' at least `1.8.0'
 ### iOS
+* not implemented yet
 
 
 ## Installation
-Add this to your package's `pubspec.yaml` file:
-
+* Add this to your package's `pubspec.yaml` file:
 ```yaml
 dependencies:
-  veon_pixel_tracker_flutter: ^0.1.0
+  pixel_tracker_flutter:
+    git:
+      url: git@github.com:veonadtech/veon-pixel-tracker-flutter.git
+      ref: 0.1.0
 ```
+
+
 ## Platform Support
 - Android ✅
 - iOS ⬜ (Coming soon)
@@ -280,8 +284,7 @@ class _PixelControllerState extends State<PixelController> {
 
 
 ## Debug Logs
-
-Enable debug mode during initialization:
+* Enable debug mode during initialization:
 
 ```dart
 VeonPixelTracker.initialize(
@@ -292,11 +295,11 @@ debug: true, // Enables detailed logging
 
 
 ## License
-This project is licensed under the BSD 3-Clause License - see the LICENSE file for details.
+* This project is licensed under the BSD 3-Clause License - see the LICENSE file for details.
 
 ## Support
-🐛 Issues: [GitHub Issues](https://github.com/veonadtech/veon-pixel-tracker-flutter)
+* Issues: [GitHub Issues](https://github.com/veonadtech/veon-pixel-tracker-flutter)
 
 
 ## About Veon
-Veon provides cutting-edge advertising technology solutions. Visit [veon.com](veon.com) to learn more.
+* Veon provides cutting-edge advertising technology solutions. Visit [veonadtech.com](https://veonadtech.com/en) to learn more.
