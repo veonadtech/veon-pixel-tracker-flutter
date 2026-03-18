@@ -15,8 +15,11 @@ class PixelEvent {
   }
 
   bool get isAppearance => type == 'appearance';
+
   bool get isDisappearance => type == 'disappearance';
+
   bool get isRefresh => type == 'refresh';
+
   bool get isError => type == 'error';
 
   @override

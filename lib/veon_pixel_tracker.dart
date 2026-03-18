@@ -4,24 +4,26 @@ import 'package:flutter/services.dart';
 import 'package:veon_pixel_tracker_flutter/veon_pixel_tracker.dart';
 
 export 'src/core/pixel_handle.dart';
-export 'src/models/pixel_stats.dart';
 export 'src/models/pixel_event.dart';
+export 'src/models/pixel_stats.dart';
 export 'src/widgets/pixel_tracker_view.dart';
 
 class VeonPixelTracker {
-  static const MethodChannel _methodChannel =
-  MethodChannel("veon_pixel_tracker/sdk");
+  static const MethodChannel _methodChannel = MethodChannel(
+    "veon_pixel_tracker/sdk",
+  );
 
-  static const EventChannel _eventChannel =
-  EventChannel("veon_pixel_tracker/events");
+  static const EventChannel _eventChannel = EventChannel(
+    "veon_pixel_tracker/events",
+  );
 
   static Stream<Map<String, dynamic>>? _eventStream;
 
   /// Stream of SDK events (initialization, shutdown)
   static Stream<Map<String, dynamic>> get events {
-    _eventStream ??= _eventChannel
-        .receiveBroadcastStream()
-        .map((event) => Map<String, dynamic>.from(event));
+    _eventStream ??= _eventChannel.receiveBroadcastStream().map(
+      (event) => Map<String, dynamic>.from(event),
+    );
     return _eventStream!;
   }
 
@@ -31,10 +33,10 @@ class VeonPixelTracker {
     bool debug = false,
   }) async {
     try {
-      await _methodChannel.invokeMethod(
-        "initialize",
-        {"baseUrl": baseUrl, "debug": debug},
-      );
+      await _methodChannel.invokeMethod("initialize", {
+        "baseUrl": baseUrl,
+        "debug": debug,
+      });
     } on PlatformException catch (e) {
       throw Exception("Failed to initialize PixelTracker: ${e.message}");
     }
@@ -67,16 +69,13 @@ class VeonPixelTracker {
     String? color,
   }) async {
     try {
-      final result = await _methodChannel.invokeMethod(
-        "createPixel",
-        {
-          "pixelId": pixelId,
-          "refreshTimeSeconds": refreshTimeSeconds,
-          "pixelSize": pixelSize,
-          "visibilityThreshold": visibilityThreshold,
-          "color": color,
-        },
-      );
+      final result = await _methodChannel.invokeMethod("createPixel", {
+        "pixelId": pixelId,
+        "refreshTimeSeconds": refreshTimeSeconds,
+        "pixelSize": pixelSize,
+        "visibilityThreshold": visibilityThreshold,
+        "color": color,
+      });
       return PixelHandle(pixelId);
     } on PlatformException catch (e) {
       throw Exception("Failed to create pixel: ${e.message}");
@@ -84,4 +83,3 @@ class VeonPixelTracker {
   }
 
 }
-

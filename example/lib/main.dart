@@ -71,8 +71,10 @@ class _MyAppState extends State<MyApp> {
   Future<void> _updateStats() async {
     if (_pixelHandle != null) {
       try {
-        final stats = await _pixelHandle!.getStats();
-        setState(() => _currentStats = stats);
+        final stats = await _pixelHandle?.getStats();
+        if (stats != null) {
+          setState(() => _currentStats = stats);
+        }
       } catch (e) {
         print('Error getting stats: $e');
       }
@@ -81,7 +83,10 @@ class _MyAppState extends State<MyApp> {
 
   void _addEvent(String event) {
     setState(() {
-      _events.insert(0, '${DateTime.now().toString().substring(11, 19)}: $event');
+      _events.insert(
+        0,
+        '${DateTime.now().toString().substring(11, 19)}: $event',
+      );
       if (_events.length > 20) _events.removeLast();
     });
   }
@@ -98,61 +103,65 @@ class _MyAppState extends State<MyApp> {
         body: !_isInitialized
             ? const Center(child: CircularProgressIndicator())
             : Column(
-          children: [
-            _buildStatusCard(),
-            _buildControls(),
-            _buildStatsCard(),
+                children: [
+                  _buildStatusCard(),
+                  _buildControls(),
+                  _buildStatsCard(),
 
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    _buildEventsList(),
-                    Container(
-                      height: MediaQuery.of(context).size.height * 2,
-                      child: Stack(
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
                         children: [
-                          Positioned(
-                            top: MediaQuery.of(context).size.height * 1,
-                            left: MediaQuery.of(context).size.width / 2 - _pixelSize / 2,
-                            child: PixelTrackerView(
-                              pixelId: 'demo_pixel_1',
-                              refreshTimeSeconds: _refreshTimeSeconds,
-                              pixelSize: _pixelSize,
-                              visibilityThreshold: _visibilityThreshold,
-                              color: '#FF0000',
-                              onPlatformViewCreated: (handle) {
-                                setState(() {
-                                  _pixelHandle = handle;
-                                });
-                                _addEvent('📱 Pixel handle received');
-                              },
-                              onEvent: (event) {
-                                if (event.isAppearance) {
-                                  _addEvent('✅ Pixel VISIBLE');
-                                  _updateStats();
-                                } else if (event.isDisappearance) {
-                                  _addEvent('👻 Pixel HIDDEN');
-                                  _updateStats();
-                                } else if (event.isRefresh) {
-                                  _addEvent('🔄 Pixel REFRESH');
-                                  _updateStats();
-                                } else if (event.isError) {
-                                  _addEvent('❌ Error: ${event.error}');
-                                }
-                              },
+                          _buildEventsList(),
+                          Container(
+                            height: MediaQuery.of(context).size.height * 2,
+                            child: Stack(
+                              children: [
+                                Positioned(
+                                  top: MediaQuery.of(context).size.height * 1,
+                                  left:
+                                      MediaQuery.of(context).size.width / 2 -
+                                      _pixelSize / 2,
+                                  child: PixelTrackerView(
+                                    pixelId: 'demo_pixel_1',
+                                    refreshTimeSeconds: _refreshTimeSeconds,
+                                    pixelSize: _pixelSize,
+                                    visibilityThreshold: _visibilityThreshold,
+                                    color: '#FF0000',
+                                    onPlatformViewCreated: (handle) {
+                                      setState(() {
+                                        _pixelHandle = handle;
+                                      });
+
+                                      handle.setVisibilityCheckInterval(4);
+                                      _addEvent('📱 Pixel handle received');
+                                    },
+                                    onEvent: (event) {
+                                      if (event.isAppearance) {
+                                        _addEvent('✅ Pixel VISIBLE');
+                                        _updateStats();
+                                      } else if (event.isDisappearance) {
+                                        _addEvent('👻 Pixel HIDDEN');
+                                        _updateStats();
+                                      } else if (event.isRefresh) {
+                                        _addEvent('🔄 Pixel REFRESH');
+                                        _updateStats();
+                                      } else if (event.isError) {
+                                        _addEvent('❌ Error: ${event.error}');
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
+                          const SizedBox(height: 50),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 50),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -211,10 +220,12 @@ class _MyAppState extends State<MyApp> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: _pixelHandle == null ? null : () {
-                    _pixelHandle!.start();
-                    _addEvent('▶️ Pixel started');
-                  },
+                  onPressed: _pixelHandle == null
+                      ? null
+                      : () {
+                          _pixelHandle?.start();
+                          _addEvent('▶️ Pixel started');
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                     foregroundColor: Colors.white,
@@ -222,10 +233,12 @@ class _MyAppState extends State<MyApp> {
                   child: const Text('Start'),
                 ),
                 ElevatedButton(
-                  onPressed: _pixelHandle == null ? null : () {
-                    _pixelHandle!.stop();
-                    _addEvent('⏸️ Pixel stopped');
-                  },
+                  onPressed: _pixelHandle == null
+                      ? null
+                      : () {
+                          _pixelHandle?.stop();
+                          _addEvent('⏸️ Pixel stopped');
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange,
                     foregroundColor: Colors.white,
@@ -233,11 +246,13 @@ class _MyAppState extends State<MyApp> {
                   child: const Text('Stop'),
                 ),
                 ElevatedButton(
-                  onPressed: _pixelHandle == null ? null : () {
-                    _pixelHandle!.destroy();
-                    setState(() => _pixelHandle = null);
-                    _addEvent('🗑️ Pixel destroyed');
-                  },
+                  onPressed: _pixelHandle == null
+                      ? null
+                      : () {
+                          _pixelHandle?.destroy();
+                          setState(() => _pixelHandle = null);
+                          _addEvent('🗑️ Pixel destroyed');
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
@@ -256,13 +271,16 @@ class _MyAppState extends State<MyApp> {
                   onPressed: _pixelHandle == null || _refreshTimeSeconds <= 0
                       ? null
                       : () {
-                    setState(() => _refreshTimeSeconds--);
-                    _pixelHandle?.updateRefreshTime(_refreshTimeSeconds);
-                    _addEvent('⏱️ Refresh time: ${_refreshTimeSeconds}s');
-                  },
+                          setState(() => _refreshTimeSeconds--);
+                          _pixelHandle?.updateRefreshTime(_refreshTimeSeconds);
+                          _addEvent('⏱️ Refresh time: ${_refreshTimeSeconds}s');
+                        },
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.blue.shade50,
                     borderRadius: BorderRadius.circular(8),
@@ -274,11 +292,13 @@ class _MyAppState extends State<MyApp> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.add_circle, color: Colors.green),
-                  onPressed: _pixelHandle == null ? null : () {
-                    setState(() => _refreshTimeSeconds++);
-                    _pixelHandle?.updateRefreshTime(_refreshTimeSeconds);
-                    _addEvent('⏱️ Refresh time: ${_refreshTimeSeconds}s');
-                  },
+                  onPressed: _pixelHandle == null
+                      ? null
+                      : () {
+                          setState(() => _refreshTimeSeconds++);
+                          _pixelHandle?.updateRefreshTime(_refreshTimeSeconds);
+                          _addEvent('⏱️ Refresh time: ${_refreshTimeSeconds}s');
+                        },
                 ),
               ],
             ),
@@ -304,18 +324,33 @@ class _MyAppState extends State<MyApp> {
             if (_currentStats != null) ...[
               Row(
                 children: [
-                  _buildStatItem('Appearances', '${_currentStats!.totalAppearances}', Colors.blue),
-                  _buildStatItem('Visible', _currentStats!.isCurrentlyVisible ? 'Yes' : 'No',
-                      _currentStats!.isCurrentlyVisible ? Colors.green : Colors.red),
-                  _buildStatItem('Refresh', _currentStats!.refreshEnabled ? 'On' : 'Off',
-                      _currentStats!.refreshEnabled ? Colors.green : Colors.grey),
+                  _buildStatItem(
+                    'Appearances',
+                    '${_currentStats?.totalAppearances ?? 0}',
+                    Colors.blue,
+                  ),
+                  _buildStatItem(
+                    'Visible',
+                    _currentStats?.isCurrentlyVisible == true ? 'Yes' : 'No',
+                    _currentStats?.isCurrentlyVisible == true
+                        ? Colors.green
+                        : Colors.red,
+                  ),
+                  _buildStatItem(
+                    'Refresh',
+                    _currentStats?.refreshEnabled == true ? 'On' : 'Off',
+                    _currentStats?.refreshEnabled == true
+                        ? Colors.green
+                        : Colors.grey,
+                  ),
                 ],
               ),
-              if (_currentStats!.nextRefreshInMs > 0)
+              if (_currentStats?.nextRefreshInMs != null &&
+                  _currentStats!.nextRefreshInMs > 0)
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
-                    'Next refresh: ${_currentStats!.nextRefreshInSeconds}s',
+                    'Next refresh: ${_currentStats?.nextRefreshInSeconds ?? 0}s',
                     style: const TextStyle(fontSize: 12, color: Colors.orange),
                   ),
                 ),
@@ -339,10 +374,7 @@ class _MyAppState extends State<MyApp> {
               color: color,
             ),
           ),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 12),
-          ),
+          Text(label, style: const TextStyle(fontSize: 12)),
         ],
       ),
     );
@@ -377,7 +409,10 @@ class _MyAppState extends State<MyApp> {
                   ),
                   child: Text(
                     _events[index],
-                    style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontFamily: 'monospace',
+                    ),
                   ),
                 );
               },

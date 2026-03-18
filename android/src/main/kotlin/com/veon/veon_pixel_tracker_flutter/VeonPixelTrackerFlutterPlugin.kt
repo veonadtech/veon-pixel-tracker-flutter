@@ -23,7 +23,6 @@ import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.platform.PlatformView
 import io.flutter.plugin.platform.PlatformViewFactory
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicInteger
 
 class VeonPixelTrackerFlutterPlugin :
     FlutterPlugin,
@@ -67,7 +66,13 @@ class VeonPixelTrackerFlutterPlugin :
     }
 
     private fun registerPixelViewFactory(binding: FlutterPlugin.FlutterPluginBinding) {
-        val factory = PixelTrackerViewFactory(binaryMessenger!!) { pixelId, handle ->
+        val messenger = binaryMessenger
+        if (messenger == null) {
+            Log.e(TAG, "BinaryMessenger is null, cannot register view factory")
+            return
+        }
+
+        val factory = PixelTrackerViewFactory(messenger) { pixelId, handle ->
             pixelHandles[pixelId] = handle
         }
         pixelViewFactories["default"] = factory
@@ -92,7 +97,6 @@ class VeonPixelTrackerFlutterPlugin :
             "updateRefreshTime" -> handleUpdateRefreshTime(call, result)
             "setVisibilityCheckInterval" -> handleSetVisibilityCheckInterval(call, result)
             "getPixelStats" -> handleGetPixelStats(call, result)
-
             else -> result.notImplemented()
         }
     }
@@ -110,18 +114,23 @@ class VeonPixelTrackerFlutterPlugin :
             when (status) {
                 is InitStatus.Success -> {
                     Log.d(TAG, "PixelTracker initialized: ${status.message}")
-                    sendEvent("initialized", mapOf(
-                        "status" to "success",
-                        "message" to status.message
-                    ))
+                    sendEvent(
+                        "initialized", mapOf(
+                            "status" to "success",
+                            "message" to status.message
+                        )
+                    )
                     result.success(null)
                 }
+
                 is InitStatus.Failure -> {
                     Log.e(TAG, "PixelTracker init failed: ${status.reason}")
-                    sendEvent("initialized", mapOf(
-                        "status" to "failure",
-                        "message" to status.reason
-                    ))
+                    sendEvent(
+                        "initialized", mapOf(
+                            "status" to "failure",
+                            "message" to status.reason
+                        )
+                    )
                     result.error("INIT_FAILED", status.reason, status.exception)
                 }
             }
@@ -142,12 +151,14 @@ class VeonPixelTrackerFlutterPlugin :
     }
 
     private fun handleCreatePixel(call: MethodCall, result: Result) {
-        val activity = activity ?: run {
+        val currentActivity = activity
+        if (currentActivity == null) {
             result.error("NO_ACTIVITY", "Activity not attached", null)
             return
         }
 
-        val pixelId = call.argument<String>("pixelId") ?: run {
+        val pixelId = call.argument<String>("pixelId")
+        if (pixelId == null) {
             result.error("INVALID_ARGUMENT", "pixelId required", null)
             return
         }
@@ -157,12 +168,8 @@ class VeonPixelTrackerFlutterPlugin :
         val visibilityThreshold = call.argument<Int>("visibilityThreshold") ?: 1
         val colorHex = call.argument<String>("color")
 
-        // Создаем контейнер для пикселя
-        val container = FrameLayout(activity)
-        val layoutParams = FrameLayout.LayoutParams(
-            pixelSize,
-            pixelSize
-        )
+        val container = FrameLayout(currentActivity)
+        val layoutParams = FrameLayout.LayoutParams(pixelSize, pixelSize)
         container.layoutParams = layoutParams
 
         val parsedColor = try {
@@ -180,7 +187,7 @@ class VeonPixelTrackerFlutterPlugin :
         )
 
         val pixelHandle = PixelTracker.attach(
-            context = activity,
+            context = currentActivity,
             container = container,
             config = config
         )
@@ -191,17 +198,19 @@ class VeonPixelTrackerFlutterPlugin :
         }
 
         pixelHandles[pixelId] = pixelHandle
-
         pixelHandle.setEventListener(createPixelEventListener(pixelId))
 
-        result.success(mapOf(
-            "pixelId" to pixelId,
-            "viewId" to container.hashCode()
-        ))
+        result.success(
+            mapOf(
+                "pixelId" to pixelId,
+                "viewId" to container.hashCode()
+            )
+        )
     }
 
     private fun handleStartPixel(call: MethodCall, result: Result) {
-        val pixelId = call.argument<String>("pixelId") ?: run {
+        val pixelId = call.argument<String>("pixelId")
+        if (pixelId == null) {
             result.error("INVALID_ARGUMENT", "pixelId required", null)
             return
         }
@@ -217,7 +226,8 @@ class VeonPixelTrackerFlutterPlugin :
     }
 
     private fun handleStopPixel(call: MethodCall, result: Result) {
-        val pixelId = call.argument<String>("pixelId") ?: run {
+        val pixelId = call.argument<String>("pixelId")
+        if (pixelId == null) {
             result.error("INVALID_ARGUMENT", "pixelId required", null)
             return
         }
@@ -233,7 +243,8 @@ class VeonPixelTrackerFlutterPlugin :
     }
 
     private fun handleDestroyPixel(call: MethodCall, result: Result) {
-        val pixelId = call.argument<String>("pixelId") ?: run {
+        val pixelId = call.argument<String>("pixelId")
+        if (pixelId == null) {
             result.error("INVALID_ARGUMENT", "pixelId required", null)
             return
         }
@@ -244,12 +255,14 @@ class VeonPixelTrackerFlutterPlugin :
     }
 
     private fun handleUpdateRefreshTime(call: MethodCall, result: Result) {
-        val pixelId = call.argument<String>("pixelId") ?: run {
+        val pixelId = call.argument<String>("pixelId")
+        if (pixelId == null) {
             result.error("INVALID_ARGUMENT", "pixelId required", null)
             return
         }
 
-        val seconds = call.argument<Int>("seconds")?.toLong() ?: run {
+        val seconds = call.argument<Int>("seconds")?.toLong()
+        if (seconds == null) {
             result.error("INVALID_ARGUMENT", "seconds required", null)
             return
         }
@@ -265,12 +278,14 @@ class VeonPixelTrackerFlutterPlugin :
     }
 
     private fun handleSetVisibilityCheckInterval(call: MethodCall, result: Result) {
-        val pixelId = call.argument<String>("pixelId") ?: run {
+        val pixelId = call.argument<String>("pixelId")
+        if (pixelId == null) {
             result.error("INVALID_ARGUMENT", "pixelId required", null)
             return
         }
 
-        val seconds = call.argument<Int>("seconds")?.toLong() ?: run {
+        val seconds = call.argument<Int>("seconds")?.toLong()
+        if (seconds == null) {
             result.error("INVALID_ARGUMENT", "seconds required", null)
             return
         }
@@ -286,7 +301,8 @@ class VeonPixelTrackerFlutterPlugin :
     }
 
     private fun handleGetPixelStats(call: MethodCall, result: Result) {
-        val pixelId = call.argument<String>("pixelId") ?: run {
+        val pixelId = call.argument<String>("pixelId")
+        if (pixelId == null) {
             result.error("INVALID_ARGUMENT", "pixelId required", null)
             return
         }
@@ -298,47 +314,57 @@ class VeonPixelTrackerFlutterPlugin :
         }
 
         val stats = handle.getStats()
-        result.success(mapOf(
-            "totalAppearances" to stats.totalAppearances.get(),
-            "isCurrentlyVisible" to stats.isCurrentlyVisible,
-            "refreshEnabled" to stats.refreshEnabled,
-            "nextRefreshInMs" to stats.nextRefreshInMs
-        ))
+        result.success(
+            mapOf(
+                "totalAppearances" to stats.totalAppearances.get(),
+                "isCurrentlyVisible" to stats.isCurrentlyVisible,
+                "refreshEnabled" to stats.refreshEnabled,
+                "nextRefreshInMs" to stats.nextRefreshInMs
+            )
+        )
     }
 
     private fun createPixelEventListener(pixelId: String): PixelEventListener {
         return object : PixelEventListener {
             override fun onAppearance(pixelId: String, timestamp: String) {
-                sendEvent("pixel_event", mapOf(
-                    "pixelId" to pixelId,
-                    "type" to "appearance",
-                    "timestamp" to timestamp
-                ))
+                sendEvent(
+                    "pixel_event", mapOf(
+                        "pixelId" to pixelId,
+                        "type" to "appearance",
+                        "timestamp" to timestamp
+                    )
+                )
             }
 
             override fun onDisappearance(pixelId: String, timestamp: String) {
-                sendEvent("pixel_event", mapOf(
-                    "pixelId" to pixelId,
-                    "type" to "disappearance",
-                    "timestamp" to timestamp
-                ))
+                sendEvent(
+                    "pixel_event", mapOf(
+                        "pixelId" to pixelId,
+                        "type" to "disappearance",
+                        "timestamp" to timestamp
+                    )
+                )
             }
 
             override fun onRefresh(pixelId: String, timestamp: String) {
-                sendEvent("pixel_event", mapOf(
-                    "pixelId" to pixelId,
-                    "type" to "refresh",
-                    "timestamp" to timestamp
-                ))
+                sendEvent(
+                    "pixel_event", mapOf(
+                        "pixelId" to pixelId,
+                        "type" to "refresh",
+                        "timestamp" to timestamp
+                    )
+                )
             }
 
             override fun onError(pixelId: String, error: String, timestamp: String) {
-                sendEvent("pixel_event", mapOf(
-                    "pixelId" to pixelId,
-                    "type" to "error",
-                    "error" to error,
-                    "timestamp" to timestamp
-                ))
+                sendEvent(
+                    "pixel_event", mapOf(
+                        "pixelId" to pixelId,
+                        "type" to "error",
+                        "error" to error,
+                        "timestamp" to timestamp
+                    )
+                )
             }
         }
     }
@@ -353,7 +379,6 @@ class VeonPixelTrackerFlutterPlugin :
         }
     }
 
-    // ActivityAware implementation
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         activity = binding.activity
     }

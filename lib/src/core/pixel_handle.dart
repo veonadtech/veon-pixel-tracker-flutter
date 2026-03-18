@@ -12,10 +12,7 @@ class PixelHandle {
   /// Start tracking this pixel
   Future<void> start() async {
     try {
-      await _methodChannel.invokeMethod(
-        "startPixel",
-        {"pixelId": _pixelId},
-      );
+      await _methodChannel.invokeMethod("startPixel", {"pixelId": _pixelId});
     } on PlatformException catch (e) {
       throw Exception("Failed to start pixel: ${e.message}");
     }
@@ -24,10 +21,7 @@ class PixelHandle {
   /// Stop tracking this pixel
   Future<void> stop() async {
     try {
-      await _methodChannel.invokeMethod(
-        "stopPixel",
-        {"pixelId": _pixelId},
-      );
+      await _methodChannel.invokeMethod("stopPixel", {"pixelId": _pixelId});
     } on PlatformException catch (e) {
       throw Exception("Failed to stop pixel: ${e.message}");
     }
@@ -36,10 +30,7 @@ class PixelHandle {
   /// Destroy this pixel and clean up resources
   Future<void> destroy() async {
     try {
-      await _methodChannel.invokeMethod(
-        "destroyPixel",
-        {"pixelId": _pixelId},
-      );
+      await _methodChannel.invokeMethod("destroyPixel", {"pixelId": _pixelId});
     } on PlatformException catch (e) {
       throw Exception("Failed to destroy pixel: ${e.message}");
     }
@@ -48,10 +39,10 @@ class PixelHandle {
   /// Update refresh time interval
   Future<void> updateRefreshTime(int seconds) async {
     try {
-      await _methodChannel.invokeMethod(
-        "updateRefreshTime",
-        {"pixelId": _pixelId, "seconds": seconds},
-      );
+      await _methodChannel.invokeMethod("updateRefreshTime", {
+        "pixelId": _pixelId,
+        "seconds": seconds,
+      });
     } on PlatformException catch (e) {
       throw Exception("Failed to update refresh time: ${e.message}");
     }
@@ -60,10 +51,10 @@ class PixelHandle {
   /// Set visibility check interval
   Future<void> setVisibilityCheckInterval(int seconds) async {
     try {
-      await _methodChannel.invokeMethod(
-        "setVisibilityCheckInterval",
-        {"pixelId": _pixelId, "seconds": seconds},
-      );
+      await _methodChannel.invokeMethod("setVisibilityCheckInterval", {
+        "pixelId": _pixelId,
+        "seconds": seconds,
+      });
     } on PlatformException catch (e) {
       throw Exception("Failed to set visibility check interval: ${e.message}");
     }

@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:veon_pixel_tracker_flutter/src/models/pixel_event.dart';
 import 'package:veon_pixel_tracker_flutter/src/core/pixel_handle.dart';
+import 'package:veon_pixel_tracker_flutter/src/models/pixel_event.dart';
 
 class PixelTrackerView extends StatefulWidget {
   final String pixelId;

@@ -2,7 +2,7 @@ group = "com.veon.veon_pixel_tracker_flutter"
 version = "1.0-SNAPSHOT"
 
 buildscript {
-    ext.kotlin_version = "2.1.0"
+    ext.kotlin_version = "1.8.0"
     repositories {
         google()
         mavenCentral()
@@ -27,7 +27,7 @@ apply plugin: "kotlin-android"
 android {
     namespace = "com.veon.veon_pixel_tracker_flutter"
 
-    compileSdk = 35
+    compileSdk = 33
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
