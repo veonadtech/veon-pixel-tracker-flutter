@@ -31,7 +31,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> _initializeSdk() async {
     try {
       await VeonPixelTracker.initialize(
-        baseUrl: "https://pixel-tracker.veonadtech.com/v1/pixel-event",
+        baseUrl: "Enter your base URL here",
         debug: true,
       );
 
