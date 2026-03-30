@@ -26,7 +26,7 @@
 * Add this to your package's `pubspec.yaml` file:
 ```yaml
 dependencies:
-  pixel_tracker_flutter:
+  veon_pixel_tracker_flutter:
     git:
       url: git@github.com:veonadtech/veon-pixel-tracker-flutter.git
       ref: 0.1.0 // replace with the version you want to use
