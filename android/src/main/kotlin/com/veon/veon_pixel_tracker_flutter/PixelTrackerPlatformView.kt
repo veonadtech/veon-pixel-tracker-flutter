@@ -2,6 +2,8 @@ package com.veon.veon_pixel_tracker_flutter
 
 import android.content.Context
 import android.graphics.Color
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.widget.FrameLayout
 import com.veonadtech.pixeltracker.PixelTracker
@@ -22,7 +24,8 @@ class PixelTrackerPlatformView(
     private val visibilityThreshold: Int,
     private val colorHex: String?,
     messenger: BinaryMessenger,
-    private val onPixelCreated: (String, PixelHandle) -> Unit
+    private val onPixelCreated: (String, PixelHandle) -> Unit,
+    private val onPixelDestroyed: (String) -> Unit
 ) : PlatformView {
 
     private val container: FrameLayout = FrameLayout(context)
@@ -97,15 +100,19 @@ class PixelTrackerPlatformView(
         map["type"] = type
         map["timestamp"] = timestamp
         map["error"] = error
+        val sink = eventSink ?: return
         Handler(Looper.getMainLooper()).post {
-            eventSink?.success(map)
+            sink.success(map)
         }
     }
 
     override fun getView(): View = container
 
     override fun dispose() {
-        pixelHandle?.destroy()
+        pixelHandle?.let {
+            it.destroy()
+            onPixelDestroyed(pixelId)
+        }
         container.removeAllViews()
         pixelHandle = null
         eventChannel.setStreamHandler(null)

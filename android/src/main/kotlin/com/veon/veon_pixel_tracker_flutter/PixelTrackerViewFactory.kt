@@ -10,7 +10,8 @@ import io.flutter.plugin.platform.PlatformViewFactory
 // PlatformViewFactory for creating pixels as native widgets
 class PixelTrackerViewFactory(
     private val messenger: BinaryMessenger,
-    private val onPixelCreated: (String, PixelHandle) -> Unit
+    private val onPixelCreated: (String, PixelHandle) -> Unit,
+    private val onPixelDestroyed: (String) -> Unit
 ) : PlatformViewFactory(StandardMessageCodec.INSTANCE) {
 
     override fun create(context: Context, viewId: Int, args: Any?): PlatformView {
@@ -31,7 +32,8 @@ class PixelTrackerViewFactory(
             visibilityThreshold = visibilityThreshold,
             colorHex = colorHex,
             messenger = messenger,
-            onPixelCreated = onPixelCreated
+            onPixelCreated = onPixelCreated,
+            onPixelDestroyed = onPixelDestroyed
         )
     }
 

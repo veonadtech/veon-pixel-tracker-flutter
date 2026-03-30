@@ -72,9 +72,15 @@ class VeonPixelTrackerFlutterPlugin :
             return
         }
 
-        val factory = PixelTrackerViewFactory(messenger) { pixelId, handle ->
-            pixelHandles[pixelId] = handle
-        }
+        val factory = PixelTrackerViewFactory(
+            messenger = messenger,
+            onPixelCreated = { pixelId, handle ->
+                pixelHandles[pixelId] = handle
+            },
+            onPixelDestroyed = { pixelId ->
+                pixelHandles.remove(pixelId)
+            }
+        )
         pixelViewFactories["default"] = factory
         binding.platformViewRegistry.registerViewFactory(
             VIEW_TYPE,
@@ -141,7 +147,6 @@ class VeonPixelTrackerFlutterPlugin :
     }
 
     private fun handleShutdown(result: Result) {
-        pixelHandles.values.forEach { it.destroy() }
         pixelHandles.clear()
 
         PixelTracker.shutdown()
