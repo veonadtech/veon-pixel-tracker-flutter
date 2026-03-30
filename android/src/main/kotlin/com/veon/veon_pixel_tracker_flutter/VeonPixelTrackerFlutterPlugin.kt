@@ -90,7 +90,6 @@ class VeonPixelTrackerFlutterPlugin :
             "shutdown" -> handleShutdown(result)
 
             // PixelHandle methods
-            "createPixel" -> handleCreatePixel(call, result)
             "startPixel" -> handleStartPixel(call, result)
             "stopPixel" -> handleStopPixel(call, result)
             "destroyPixel" -> handleDestroyPixel(call, result)
@@ -148,64 +147,6 @@ class VeonPixelTrackerFlutterPlugin :
         PixelTracker.shutdown()
         sendEvent("shutdown", mapOf("status" to "success"))
         result.success(null)
-    }
-
-    private fun handleCreatePixel(call: MethodCall, result: Result) {
-        val currentActivity = activity
-        if (currentActivity == null) {
-            result.error("NO_ACTIVITY", "Activity not attached", null)
-            return
-        }
-
-        val pixelId = call.argument<String>("pixelId")
-        if (pixelId == null) {
-            result.error("INVALID_ARGUMENT", "pixelId required", null)
-            return
-        }
-
-        val refreshTime = call.argument<Int>("refreshTimeSeconds")?.toLong() ?: 0L
-        val pixelSize = call.argument<Int>("pixelSize") ?: 1
-        val visibilityThreshold = call.argument<Int>("visibilityThreshold") ?: 1
-        val colorHex = call.argument<String>("color")
-
-        val container = FrameLayout(currentActivity)
-        val layoutParams = FrameLayout.LayoutParams(pixelSize, pixelSize)
-        container.layoutParams = layoutParams
-
-        val parsedColor = try {
-            colorHex?.let { Color.parseColor(it) }
-        } catch (e: IllegalArgumentException) {
-            null
-        }
-
-        val config = PixelConfig(
-            pixelId = pixelId,
-            refreshTimeSeconds = refreshTime,
-            pixelSize = pixelSize,
-            visibilityThreshold = visibilityThreshold,
-            color = parsedColor
-        )
-
-        val pixelHandle = PixelTracker.attach(
-            context = currentActivity,
-            container = container,
-            config = config
-        )
-
-        if (pixelHandle == null) {
-            result.error("ATTACH_FAILED", "Failed to attach pixel", null)
-            return
-        }
-
-        pixelHandles[pixelId] = pixelHandle
-        pixelHandle.setEventListener(createPixelEventListener(pixelId))
-
-        result.success(
-            mapOf(
-                "pixelId" to pixelId,
-                "viewId" to container.hashCode()
-            )
-        )
     }
 
     private fun handleStartPixel(call: MethodCall, result: Result) {

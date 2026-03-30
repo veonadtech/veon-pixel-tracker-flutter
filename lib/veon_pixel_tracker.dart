@@ -60,26 +60,4 @@ class VeonPixelTracker {
     }
   }
 
-  /// Create a new pixel
-  static Future<PixelHandle> createPixel({
-    required String pixelId,
-    int refreshTimeSeconds = 0,
-    int pixelSize = 1,
-    int visibilityThreshold = 1,
-    String? color,
-  }) async {
-    try {
-      await _methodChannel.invokeMethod("createPixel", {
-        "pixelId": pixelId,
-        "refreshTimeSeconds": refreshTimeSeconds,
-        "pixelSize": pixelSize,
-        "visibilityThreshold": visibilityThreshold,
-        "color": color,
-      });
-      return PixelHandle(pixelId);
-    } on PlatformException catch (e) {
-      throw Exception("Failed to create pixel: ${e.message}");
-    }
-  }
-
 }
