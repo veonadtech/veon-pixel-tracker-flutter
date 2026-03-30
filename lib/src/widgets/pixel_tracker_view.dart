@@ -15,15 +15,15 @@ class PixelTrackerView extends StatefulWidget {
   final Function(PixelHandle)? onPlatformViewCreated;
 
   const PixelTrackerView({
-    Key? key,
+    super.key,
     required this.pixelId,
     this.refreshTimeSeconds = 0,
     this.pixelSize = 1,
     this.visibilityThreshold = 1,
     this.color,
     this.onEvent,
-    this.onPlatformViewCreated,
-  }) : super(key: key);
+    this.onPlatformViewCreated
+  });
 
   @override
   State<PixelTrackerView> createState() => _PixelTrackerViewState();

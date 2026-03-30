@@ -69,7 +69,7 @@ class VeonPixelTracker {
     String? color,
   }) async {
     try {
-      final result = await _methodChannel.invokeMethod("createPixel", {
+      await _methodChannel.invokeMethod("createPixel", {
         "pixelId": pixelId,
         "refreshTimeSeconds": refreshTimeSeconds,
         "pixelSize": pixelSize,

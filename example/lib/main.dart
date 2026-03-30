@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:veon_pixel_tracker_flutter/veon_pixel_tracker.dart';
 
@@ -76,7 +77,9 @@ class _MyAppState extends State<MyApp> {
           setState(() => _currentStats = stats);
         }
       } catch (e) {
-        print('Error getting stats: $e');
+        if (kDebugMode) {
+          print('Error getting stats: $e');
+        }
       }
     }
   }
@@ -113,7 +116,7 @@ class _MyAppState extends State<MyApp> {
                       child: Column(
                         children: [
                           _buildEventsList(),
-                          Container(
+                          SizedBox(
                             height: MediaQuery.of(context).size.height * 2,
                             child: Stack(
                               children: [
