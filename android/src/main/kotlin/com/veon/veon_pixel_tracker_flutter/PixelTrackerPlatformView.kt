@@ -28,10 +28,15 @@ class PixelTrackerPlatformView(
     private val onPixelDestroyed: (String) -> Unit
 ) : PlatformView {
 
+    companion object {
+        private const val TAG = "PixelTrackerPlatformView"
+    }
+
     private val container: FrameLayout = FrameLayout(context)
     private var pixelHandle: PixelHandle? = null
     private val eventChannel: EventChannel
     private var eventSink: EventChannel.EventSink? = null
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     init {
         eventChannel = EventChannel(messenger, "veon_pixel_tracker/view_events_$viewId")
@@ -78,19 +83,19 @@ class PixelTrackerPlatformView(
     private fun createEventListener(): PixelEventListener {
         return object : PixelEventListener {
             override fun onAppearance(pixelId: String, timestamp: String) {
-                sendEvent("appearance", timestamp)
+                sendEvent(PixelEvents.APPEARANCE, timestamp)
             }
 
             override fun onDisappearance(pixelId: String, timestamp: String) {
-                sendEvent("disappearance", timestamp)
+                sendEvent(PixelEvents.DISAPPEARANCE, timestamp)
             }
 
             override fun onRefresh(pixelId: String, timestamp: String) {
-                sendEvent("refresh", timestamp)
+                sendEvent(PixelEvents.REFRESH, timestamp)
             }
 
             override fun onError(pixelId: String, error: String, timestamp: String) {
-                sendEvent("error", timestamp, error)
+                sendEvent(PixelEvents.ERROR, timestamp, error)
             }
         }
     }
@@ -101,7 +106,7 @@ class PixelTrackerPlatformView(
         map["timestamp"] = timestamp
         map["error"] = error
         val sink = eventSink ?: return
-        Handler(Looper.getMainLooper()).post {
+        mainHandler.post {
             sink.success(map)
         }
     }

@@ -15,7 +15,7 @@ class PixelTrackerViewFactory(
 ) : PlatformViewFactory(StandardMessageCodec.INSTANCE) {
 
     override fun create(context: Context, viewId: Int, args: Any?): PlatformView {
-        val params = args as? Map<String, Any> ?: emptyMap()
+        val params = args as? Map<*, *> ?: emptyMap<Any, Any>()
 
         val pixelId = params["pixelId"] as? String ?: "pixel_$viewId"
         val refreshTime = (params["refreshTimeSeconds"] as? Int)?.toLong() ?: 0L

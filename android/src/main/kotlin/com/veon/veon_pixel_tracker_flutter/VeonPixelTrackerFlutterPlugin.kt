@@ -37,6 +37,7 @@ class VeonPixelTrackerFlutterPlugin :
 
     private val pixelHandles = ConcurrentHashMap<String, PixelHandle>()
     private val pixelViewFactories = ConcurrentHashMap<String, PixelTrackerViewFactory>()
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     companion object {
         private const val TAG = "PixelTrackerFlutter"
@@ -120,8 +121,9 @@ class VeonPixelTrackerFlutterPlugin :
                 is InitStatus.Success -> {
                     Log.d(TAG, "PixelTracker initialized: ${status.message}")
                     sendEvent(
-                        "initialized", mapOf(
-                            "status" to "success",
+                        PixelEvents.INITIALIZED,
+                        mapOf(
+                            "status" to PixelEvents.SUCCESS,
                             "message" to status.message
                         )
                     )
@@ -131,8 +133,9 @@ class VeonPixelTrackerFlutterPlugin :
                 is InitStatus.Failure -> {
                     Log.e(TAG, "PixelTracker init failed: ${status.reason}")
                     sendEvent(
-                        "initialized", mapOf(
-                            "status" to "failure",
+                        PixelEvents.INITIALIZED,
+                        mapOf(
+                            "status" to PixelEvents.FAILURE,
                             "message" to status.reason
                         )
                     )
@@ -148,9 +151,8 @@ class VeonPixelTrackerFlutterPlugin :
 
     private fun handleShutdown(result: Result) {
         pixelHandles.clear()
-
         PixelTracker.shutdown()
-        sendEvent("shutdown", mapOf("status" to "success"))
+        sendEvent(PixelEvents.SHUTDOWN, mapOf("status" to PixelEvents.SUCCESS))
         result.success(null)
     }
 
@@ -274,9 +276,10 @@ class VeonPixelTrackerFlutterPlugin :
         return object : PixelEventListener {
             override fun onAppearance(pixelId: String, timestamp: String) {
                 sendEvent(
-                    "pixel_event", mapOf(
+                    PixelEvents.PIXEL_EVENT,
+                    mapOf(
                         "pixelId" to pixelId,
-                        "type" to "appearance",
+                        "type" to PixelEvents.APPEARANCE,
                         "timestamp" to timestamp
                     )
                 )
@@ -284,9 +287,10 @@ class VeonPixelTrackerFlutterPlugin :
 
             override fun onDisappearance(pixelId: String, timestamp: String) {
                 sendEvent(
-                    "pixel_event", mapOf(
+                    PixelEvents.PIXEL_EVENT,
+                    mapOf(
                         "pixelId" to pixelId,
-                        "type" to "disappearance",
+                        "type" to PixelEvents.DISAPPEARANCE,
                         "timestamp" to timestamp
                     )
                 )
@@ -294,9 +298,10 @@ class VeonPixelTrackerFlutterPlugin :
 
             override fun onRefresh(pixelId: String, timestamp: String) {
                 sendEvent(
-                    "pixel_event", mapOf(
+                    PixelEvents.PIXEL_EVENT,
+                    mapOf(
                         "pixelId" to pixelId,
-                        "type" to "refresh",
+                        "type" to PixelEvents.REFRESH,
                         "timestamp" to timestamp
                     )
                 )
@@ -304,9 +309,10 @@ class VeonPixelTrackerFlutterPlugin :
 
             override fun onError(pixelId: String, error: String, timestamp: String) {
                 sendEvent(
-                    "pixel_event", mapOf(
+                    PixelEvents.PIXEL_EVENT,
+                    mapOf(
                         "pixelId" to pixelId,
-                        "type" to "error",
+                        "type" to PixelEvents.ERROR,
                         "error" to error,
                         "timestamp" to timestamp
                     )
@@ -320,7 +326,7 @@ class VeonPixelTrackerFlutterPlugin :
             "event" to eventType,
             "data" to data
         )
-        Handler(Looper.getMainLooper()).post {
+        mainHandler.post {
             eventSink?.success(event)
         }
     }
