@@ -13,7 +13,6 @@ import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.platform.PlatformView
 import java.util.HashMap
 
-// PlatformView реализация
 class PixelTrackerPlatformView(
     context: Context,
     viewId: Int,

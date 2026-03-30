@@ -7,7 +7,7 @@ import io.flutter.plugin.common.StandardMessageCodec
 import io.flutter.plugin.platform.PlatformView
 import io.flutter.plugin.platform.PlatformViewFactory
 
-// PlatformViewFactory для создания пикселей как нативных виджетов
+// PlatformViewFactory for creating pixels as native widgets
 class PixelTrackerViewFactory(
     private val messenger: BinaryMessenger,
     private val onPixelCreated: (String, PixelHandle) -> Unit
