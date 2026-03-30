@@ -293,10 +293,6 @@ debug: true, // Enables detailed logging
 );
 ```
 
-
-## License
-* This project is licensed under the BSD 3-Clause License - see the LICENSE file for details.
-
 ## Support
 * Issues: [GitHub Issues](https://github.com/veonadtech/veon-pixel-tracker-flutter)
 
