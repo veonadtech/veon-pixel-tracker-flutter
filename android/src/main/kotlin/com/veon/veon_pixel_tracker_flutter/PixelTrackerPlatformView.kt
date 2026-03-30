@@ -97,13 +97,16 @@ class PixelTrackerPlatformView(
         map["type"] = type
         map["timestamp"] = timestamp
         map["error"] = error
-        eventSink?.success(map)
+        Handler(Looper.getMainLooper()).post {
+            eventSink?.success(map)
+        }
     }
 
     override fun getView(): View = container
 
     override fun dispose() {
         pixelHandle?.destroy()
+        container.removeAllViews()
         pixelHandle = null
         eventChannel.setStreamHandler(null)
     }
