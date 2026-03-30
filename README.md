@@ -29,7 +29,7 @@ dependencies:
   pixel_tracker_flutter:
     git:
       url: git@github.com:veonadtech/veon-pixel-tracker-flutter.git
-      ref: 0.1.0
+      ref: 0.1.0 // replace with the version you want to use
 ```
 
 
@@ -53,26 +53,25 @@ _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-@override
-void initState() {
-super.initState();
-_initializeTracker();
-}
+  @override
+  void initState() {
+    super.initState();
+    _initializeTracker();
+  }
 
-Future<void> _initializeTracker() async {
-try {
-await VeonPixelTracker.initialize(
-baseUrl: 'https://your-pixel-tracker-url.com/v1/pixel-event',
-debug: true, // Set to false in production
-);
-
+  Future<void> _initializeTracker() async {
+    try {
+      await VeonPixelTracker.initialize(
+        baseUrl: 'Enter your base URL here',
+        debug: true, // Set to false in production
+      );
       if (await VeonPixelTracker.isInitialized()) {
         print('✅ PixelTracker initialized successfully');
       }
     } catch (e) {
       print('❌ Initialization failed: $e');
     }
-}
+  }
 }
 ```
 
@@ -120,8 +119,8 @@ class MyPixelScreen extends StatelessWidget {
                     child: PixelTrackerView(
                       pixelId: 'home_screen_pixel',
                       refreshTimeSeconds: 5, // Refresh every 5 seconds
-                      pixelSize: 40, // 40x40 pixel for debug mode
-                      visibilityThreshold: 30, // 30px visibility required
+                      pixelSize: 40, // 40x40 pixel for debug mode, 1x1 for release
+                      visibilityThreshold: 1, // 1px visibility required
                       color: '#FF0000', // Red color
                       onEvent: (event) {
                         if (event.isAppearance) {
@@ -144,6 +143,7 @@ class MyPixelScreen extends StatelessWidget {
   }
 }
 ```
+
 ### Programmatic Pixel Control
 ``` dart
 class PixelController extends StatefulWidget {
