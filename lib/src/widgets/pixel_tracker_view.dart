@@ -38,12 +38,13 @@ class _PixelTrackerViewState extends State<PixelTrackerView> {
     if (_isCreated) return;
     _isCreated = true;
 
-    _controller = PixelController(widget.pixelId);
-    widget.onPixelCreated?.call(_controller!);
+    final controller = PixelController(widget.pixelId);
+    _controller = controller;
+    widget.onPixelCreated?.call(controller);
 
     final eventChannel = EventChannel('veon_pixel_tracker/view_events_$viewId');
     _eventSubscription = eventChannel.receiveBroadcastStream().listen((event) {
-      final map = Map<String, dynamic>.from(event);
+      final map = Map<String, dynamic>.from(event as Map);
       widget.onEvent?.call(PixelEvent.fromMap(map));
     });
   }

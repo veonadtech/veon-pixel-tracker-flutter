@@ -13,10 +13,15 @@ class VeonPixelTracker {
   static Stream<Map<String, dynamic>>? _eventStream;
 
   static Stream<Map<String, dynamic>> get events {
-    _eventStream ??= _eventChannel
+    final existing = _eventStream;
+    if (existing != null) return existing;
+
+    final stream = _eventChannel
         .receiveBroadcastStream()
-        .map((event) => Map<String, dynamic>.from(event));
-    return _eventStream!;
+        .map((event) => Map<String, dynamic>.from(event as Map));
+
+    _eventStream = stream;
+    return stream;
   }
 
   /// Initialize the PixelTracker SDK

@@ -39,7 +39,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> _initializeSdk() async {
     try {
       await VeonPixelTracker.initialize(
-        baseUrl: "https://pixel-tracker.veonadtech.com/v1/pixel-event",
+        baseUrl: "Enter your base URL here",
         debug: true,
       );
 
@@ -81,16 +81,17 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _updateStats() async {
-    if (_pixelController != null && mounted) {
-      try {
-        final stats = await _pixelController!.getStats();
-        if (mounted) {
-          setState(() => _currentStats = stats);
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('Error getting stats: $e');
-        }
+    final controller = _pixelController;
+    if (controller == null || !mounted) return;
+
+    try {
+      final stats = await controller.getStats();
+      if (mounted) {
+        setState(() => _currentStats = stats);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting stats: $e');
       }
     }
   }
@@ -119,63 +120,65 @@ class _MyAppState extends State<MyApp> {
         body: !_isInitialized
             ? const Center(child: CircularProgressIndicator())
             : Column(
-          children: [
-            _buildStatusCard(),
-            _buildControls(),
-            _buildStatsCard(),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    _buildEventsList(),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height * 2,
-                      child: Stack(
+                children: [
+                  _buildStatusCard(),
+                  _buildControls(),
+                  _buildStatsCard(),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
                         children: [
-                          Positioned(
-                            top: MediaQuery.of(context).size.height * 1,
-                            left: MediaQuery.of(context).size.width / 2 - _pixelSize / 2,
-                            child: PixelTrackerView(
-                              pixelId: 'demo_pixel_1',
-                              refreshTimeSeconds: _refreshTimeSeconds,
-                              pixelSize: _pixelSize,
-                              visibilityThreshold: _visibilityThreshold,
-                              color: '#FF0000',
-                              onPixelCreated: (controller) {
-                                if (!mounted) return;
-                                setState(() {
-                                  _pixelController = controller;
-                                });
-                                controller.setVisibilityCheckInterval(4);
-                                controller.start();
-                                _addEvent('📱 Pixel controller received');
-                              },
-                              onEvent: (event) {
-                                if (event.isAppearance) {
-                                  _addEvent('✅ Pixel VISIBLE');
-                                  _updateStats();
-                                } else if (event.isDisappearance) {
-                                  _addEvent('👻 Pixel HIDDEN');
-                                  _updateStats();
-                                } else if (event.isRefresh) {
-                                  _addEvent('🔄 Pixel REFRESH');
-                                  _updateStats();
-                                } else if (event.isError) {
-                                  _addEvent('❌ Error: ${event.error}');
-                                }
-                              },
+                          _buildEventsList(),
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 2,
+                            child: Stack(
+                              children: [
+                                Positioned(
+                                  top: MediaQuery.of(context).size.height * 1,
+                                  left:
+                                      MediaQuery.of(context).size.width / 2 -
+                                      _pixelSize / 2,
+                                  child: PixelTrackerView(
+                                    pixelId: 'demo_pixel_1',
+                                    refreshTimeSeconds: _refreshTimeSeconds,
+                                    pixelSize: _pixelSize,
+                                    visibilityThreshold: _visibilityThreshold,
+                                    color: '#FF0000',
+                                    onPixelCreated: (controller) {
+                                      if (!mounted) return;
+                                      setState(() {
+                                        _pixelController = controller;
+                                      });
+                                      controller.setVisibilityCheckInterval(4);
+                                      controller.start();
+                                      _addEvent('📱 Pixel controller received');
+                                    },
+                                    onEvent: (event) {
+                                      if (event.isAppearance) {
+                                        _addEvent('✅ Pixel VISIBLE');
+                                        _updateStats();
+                                      } else if (event.isDisappearance) {
+                                        _addEvent('👻 Pixel HIDDEN');
+                                        _updateStats();
+                                      } else if (event.isRefresh) {
+                                        _addEvent('🔄 Pixel REFRESH');
+                                        _updateStats();
+                                      } else if (event.isError) {
+                                        _addEvent('❌ Error: ${event.error}');
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
+                          const SizedBox(height: 50),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 50),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -216,39 +219,50 @@ class _MyAppState extends State<MyApp> {
   }
 
   Widget _buildControls() {
+    final controller = _pixelController;
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
           children: [
-            const Text('Controls', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text(
+              'Controls',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: _pixelController == null ? null : () {
-                    _pixelController!.start();
-                    _addEvent('▶️ Pixel started');
-                  },
+                  onPressed: controller == null
+                      ? null
+                      : () {
+                          controller.start();
+                          _addEvent('▶️ Pixel started');
+                        },
                   child: const Text('Start'),
                 ),
                 ElevatedButton(
-                  onPressed: _pixelController == null ? null : () {
-                    _pixelController!.stop();
-                    _addEvent('⏸️ Pixel stopped');
-                  },
+                  onPressed: controller == null
+                      ? null
+                      : () {
+                          controller.stop();
+                          _addEvent('⏸️ Pixel stopped');
+                        },
                   child: const Text('Stop'),
                 ),
                 ElevatedButton(
-                  onPressed: _pixelController == null ? null : () {
-                    _pixelController!.destroy();
-                    if (mounted) {
-                      setState(() => _pixelController = null);
-                    }
-                    _addEvent('🗑️ Pixel destroyed');
-                  },
+                  onPressed: controller == null
+                      ? null
+                      : () {
+                          controller.destroy();
+                          if (mounted) {
+                            setState(() => _pixelController = null);
+                          }
+                          _addEvent('🗑️ Pixel destroyed');
+                        },
                   child: const Text('Destroy'),
                 ),
               ],
@@ -260,24 +274,24 @@ class _MyAppState extends State<MyApp> {
                 const Text('Refresh time: '),
                 IconButton(
                   icon: const Icon(Icons.remove_circle),
-                  onPressed: _pixelController == null || _refreshTimeSeconds <= 0
+                  onPressed: controller == null || _refreshTimeSeconds <= 0
                       ? null
                       : () {
-                    setState(() => _refreshTimeSeconds--);
-                    _pixelController!.updateRefreshTime(_refreshTimeSeconds);
-                    _addEvent('⏱️ Refresh time: ${_refreshTimeSeconds}s');
-                  },
+                          setState(() => _refreshTimeSeconds--);
+                          controller.updateRefreshTime(_refreshTimeSeconds);
+                          _addEvent('⏱️ Refresh time: ${_refreshTimeSeconds}s');
+                        },
                 ),
                 Text('$_refreshTimeSeconds s'),
                 IconButton(
                   icon: const Icon(Icons.add_circle),
-                  onPressed: _pixelController == null
+                  onPressed: controller == null
                       ? null
                       : () {
-                    setState(() => _refreshTimeSeconds++);
-                    _pixelController!.updateRefreshTime(_refreshTimeSeconds);
-                    _addEvent('⏱️ Refresh time: ${_refreshTimeSeconds}s');
-                  },
+                          setState(() => _refreshTimeSeconds++);
+                          controller.updateRefreshTime(_refreshTimeSeconds);
+                          _addEvent('⏱️ Refresh time: ${_refreshTimeSeconds}s');
+                        },
                 ),
               ],
             ),
@@ -288,7 +302,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   Widget _buildStatsCard() {
-    if (_currentStats == null) {
+    final stats = _currentStats;
+    if (stats == null) {
       return const Padding(
         padding: EdgeInsets.all(8),
         child: Text('No stats available'),
@@ -301,10 +316,10 @@ class _MyAppState extends State<MyApp> {
         padding: const EdgeInsets.all(12),
         child: Column(
           children: [
-            Text('Appearances: ${_currentStats!.totalAppearances}'),
-            Text('Visible: ${_currentStats!.isCurrentlyVisible ? "Yes" : "No"}'),
-            Text('Refresh: ${_currentStats!.refreshEnabled ? "On" : "Off"}'),
-            Text('Next refresh: ${_currentStats!.nextRefreshInSeconds}s'),
+            Text('Appearances: ${stats.totalAppearances}'),
+            Text('Visible: ${stats.isCurrentlyVisible ? "Yes" : "No"}'),
+            Text('Refresh: ${stats.refreshEnabled ? "On" : "Off"}'),
+            Text('Next refresh: ${stats.nextRefreshInSeconds}s'),
           ],
         ),
       ),
