@@ -82,12 +82,14 @@ void initState() {
   super.initState();
   
   VeonPixelTracker.events.listen((event) {
-    switch (event['event']) {
+    final eventType = event['event'];
+    final data = event['data'];
+
+    switch (eventType) {
       case 'initialized':
-        print('SDK initialized: ${event['data']}');
+        print('SDK initialized: $data');
         break;
       case 'pixel_event':
-        final data = event['data'];
         print('Pixel ${data['pixelId']}: ${data['type']} at ${data['timestamp']}');
         break;
     }
@@ -99,7 +101,14 @@ void initState() {
 ```dart
 import 'package:veon_pixel_tracker_flutter/veon_pixel_tracker.dart';
 
-class MyPixelScreen extends StatelessWidget {
+class MyPixelScreen extends StatefulWidget {
+  @override
+  _MyPixelScreenState createState() => _MyPixelScreenState();
+}
+
+class _MyPixelScreenState extends State<MyPixelScreen> {
+  PixelController? _controller;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -119,9 +128,14 @@ class MyPixelScreen extends StatelessWidget {
                     child: PixelTrackerView(
                       pixelId: 'home_screen_pixel',
                       refreshTimeSeconds: 5, // Refresh every 5 seconds
-                      pixelSize: 40, // 40x40 pixel for debug mode, 1x1 for release
+                      pixelSize: 40, // 40x40 for debug, 1x1 for release
                       visibilityThreshold: 1, // 1px visibility required
                       color: '#FF0000', // Red color
+                      onPixelCreated: (controller) {
+                        _controller = controller;
+                        controller.setVisibilityCheckInterval(3);
+                        controller.start();
+                      },
                       onEvent: (event) {
                         if (event.isAppearance) {
                           print('✅ Pixel visible!');
@@ -141,88 +155,92 @@ class MyPixelScreen extends StatelessWidget {
       ),
     );
   }
+
+  @override
+  void dispose() {
+    _controller?.destroy();
+    super.dispose();
+  }
 }
 ```
 
-### Programmatic Pixel Control
-``` dart
-class PixelController extends StatefulWidget {
+### Pixel Control with Controller
+```dart 
+class PixelControllerExample extends StatefulWidget {
   @override
-  _PixelControllerState createState() => _PixelControllerState();
+  _PixelControllerExampleState createState() => _PixelControllerExampleState();
 }
 
-class _PixelControllerState extends State<PixelController> {
-  PixelHandle? _pixelHandle;
+class _PixelControllerExampleState extends State<PixelControllerExample> {
+  PixelController? _controller;
   PixelStats? _stats;
   int _refreshTime = 5;
-
-  @override
-  void initState() {
-    super.initState();
-    _createPixel();
-  }
-
-  Future<void> _createPixel() async {
-    _pixelHandle = await VeonPixelTracker.createPixel(
-      pixelId: 'controlled_pixel',
-      refreshTimeSeconds: _refreshTime,
-      pixelSize: 50,
-      visibilityThreshold: 25,
-      color: '#00FF00',
-    );
-
-    // Set visibility check interval. The default value is 3 seconds.
-    await _pixelHandle?.setVisibilityCheckInterval(3); 
-    
-    // Start tracking
-    await _pixelHandle?.start();
-    
-    // Get initial stats
-    _updateStats();
-  }
-
-  Future<void> _updateStats() async {
-    if (_pixelHandle != null) {
-      setState(() {
-        _stats = await _pixelHandle!.getStats();
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text('Appearances: ${_stats?.totalAppearances ?? 0}'),
-        Text('Visible: ${_stats?.isCurrentlyVisible ?? false}'),
-        
+        if (_stats != null) ...[
+          Text('Appearances: ${_stats!.totalAppearances}'),
+          Text('Visible: ${_stats!.isCurrentlyVisible ? "Yes" : "No"}'),
+        ],
+
         Row(
           children: [
             ElevatedButton(
-              onPressed: () => _pixelHandle?.start(),
+              onPressed: () => _controller?.start(),
               child: Text('Start'),
             ),
             ElevatedButton(
-              onPressed: () => _pixelHandle?.stop(),
+              onPressed: () => _controller?.stop(),
               child: Text('Stop'),
             ),
             ElevatedButton(
               onPressed: () {
-                _pixelHandle?.updateRefreshTime(++_refreshTime);
+                _controller?.updateRefreshTime(++_refreshTime);
                 _updateStats();
               },
               child: Text('Increase Refresh'),
             ),
           ],
         ),
+
+        PixelTrackerView(
+          pixelId: 'controlled_pixel',
+          refreshTimeSeconds: _refreshTime,
+          pixelSize: 50,
+          visibilityThreshold: 25,
+          color: '#00FF00',
+          onPixelCreated: (controller) {
+            _controller = controller;
+            controller.setVisibilityCheckInterval(3);
+            controller.start();
+          },
+          onEvent: (event) {
+            if (event.isAppearance) _updateStats();
+          },
+        ),
       ],
     );
+  }
+
+  Future<void> _updateStats() async {
+    if (_controller != null) {
+      final stats = await _controller!.getStats();
+      setState(() => _stats = stats);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.destroy();
+    super.dispose();
   }
 }
 ```
 
 ## Complete Example
-- Check out the /example folder for a complete working example with:
+Check out the /example folder for a complete working example with:
 - SDK initialization
 - Pixel creation with custom positioning
 - Real-time event logging
@@ -236,10 +254,9 @@ class _PixelControllerState extends State<PixelController> {
 - initialize({required String baseUrl, bool debug}) - Initialize the SDK
 - isInitialized() - Check if SDK is initialized
 - shutdown() - Shutdown SDK and cleanup
-- createPixel({...}) - Create a new pixel programmatically
 - events - Stream of SDK events
 
-### PixelHandle
+### PixelController
 - start() - Start tracking the pixel
 - stop() - Stop tracking
 - destroy() - Destroy pixel and cleanup
