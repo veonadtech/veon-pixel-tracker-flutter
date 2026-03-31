@@ -1,27 +1,17 @@
 package com.veon.veon_pixel_tracker_flutter
 
 import android.app.Activity
-import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.view.View
-import android.widget.FrameLayout
 import com.veonadtech.pixeltracker.PixelTracker
 import com.veonadtech.pixeltracker.InitStatus
-import com.veonadtech.pixeltracker.api.PixelConfig
-import com.veonadtech.pixeltracker.api.PixelEventListener
-import com.veonadtech.pixeltracker.api.PixelHandle
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
-import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugin.common.MethodChannel.Result
-import io.flutter.plugin.platform.PlatformView
-import io.flutter.plugin.platform.PlatformViewFactory
 import java.util.concurrent.ConcurrentHashMap
 
 class VeonPixelTrackerFlutterPlugin :
@@ -33,11 +23,8 @@ class VeonPixelTrackerFlutterPlugin :
     private lateinit var eventChannel: EventChannel
     private var eventSink: EventChannel.EventSink? = null
     private var activity: Activity? = null
-    private var binaryMessenger: BinaryMessenger? = null
 
-    private val pixelHandles = ConcurrentHashMap<String, PixelHandle>()
-    private val pixelViewFactories = ConcurrentHashMap<String, PixelTrackerViewFactory>()
-    private val mainHandler = Handler(Looper.getMainLooper())
+    private val pixelHandles = ConcurrentHashMap<String, com.veonadtech.pixeltracker.api.PixelHandle>()
 
     companion object {
         private const val TAG = "PixelTrackerFlutter"
@@ -47,7 +34,6 @@ class VeonPixelTrackerFlutterPlugin :
     }
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        binaryMessenger = binding.binaryMessenger
         methodChannel = MethodChannel(binding.binaryMessenger, METHOD_CHANNEL)
         eventChannel = EventChannel(binding.binaryMessenger, EVENT_CHANNEL)
 
@@ -63,274 +49,163 @@ class VeonPixelTrackerFlutterPlugin :
             }
         })
 
-        registerPixelViewFactory(binding)
-    }
-
-    private fun registerPixelViewFactory(binding: FlutterPlugin.FlutterPluginBinding) {
-        val messenger = binaryMessenger
-        if (messenger == null) {
-            Log.e(TAG, "BinaryMessenger is null, cannot register view factory")
-            return
-        }
-
-        val factory = PixelTrackerViewFactory(
-            messenger = messenger,
-            onPixelCreated = { pixelId, handle ->
-                pixelHandles[pixelId] = handle
-            },
-            onPixelDestroyed = { pixelId ->
-                pixelHandles.remove(pixelId)
-            }
-        )
-        pixelViewFactories["default"] = factory
         binding.platformViewRegistry.registerViewFactory(
             VIEW_TYPE,
-            factory
-        )
-    }
-
-    override fun onMethodCall(call: MethodCall, result: Result) {
-        when (call.method) {
-            // SDK-level methods
-            "initialize" -> handleInitialize(call, result)
-            "isInitialized" -> handleIsInitialized(result)
-            "shutdown" -> handleShutdown(result)
-
-            // PixelHandle methods
-            "startPixel" -> handleStartPixel(call, result)
-            "stopPixel" -> handleStopPixel(call, result)
-            "destroyPixel" -> handleDestroyPixel(call, result)
-            "updateRefreshTime" -> handleUpdateRefreshTime(call, result)
-            "setVisibilityCheckInterval" -> handleSetVisibilityCheckInterval(call, result)
-            "getPixelStats" -> handleGetPixelStats(call, result)
-            else -> result.notImplemented()
-        }
-    }
-
-    private fun handleInitialize(call: MethodCall, result: Result) {
-        val baseUrl = call.argument<String>("baseUrl") ?: ""
-        val debug = call.argument<Boolean>("debug") ?: false
-
-        if (baseUrl.isBlank()) {
-            result.error("INVALID_ARGUMENT", "baseUrl cannot be empty", null)
-            return
-        }
-
-        PixelTracker.initialize(baseUrl, debug) { status ->
-            when (status) {
-                is InitStatus.Success -> {
-                    Log.d(TAG, "PixelTracker initialized: ${status.message}")
-                    sendEvent(
-                        PixelEvents.INITIALIZED,
-                        mapOf(
-                            "status" to PixelEvents.SUCCESS,
-                            "message" to status.message
-                        )
-                    )
-                    result.success(null)
+            PixelTrackerViewFactory(
+                messenger = binding.binaryMessenger,
+                onPixelCreated = { pixelId, handle ->
+                    pixelHandles[pixelId] = handle
+                    Log.d(TAG, "✅ Pixel stored: $pixelId")
+                },
+                onPixelDestroyed = { pixelId ->
+                    pixelHandles.remove(pixelId)
+                    Log.d(TAG, "🗑️ Pixel removed: $pixelId")
                 }
-
-                is InitStatus.Failure -> {
-                    Log.e(TAG, "PixelTracker init failed: ${status.reason}")
-                    sendEvent(
-                        PixelEvents.INITIALIZED,
-                        mapOf(
-                            "status" to PixelEvents.FAILURE,
-                            "message" to status.reason
-                        )
-                    )
-                    result.error("INIT_FAILED", status.reason, status.exception)
-                }
-            }
-        }
-    }
-
-    private fun handleIsInitialized(result: Result) {
-        result.success(PixelTracker.isInitialized())
-    }
-
-    private fun handleShutdown(result: Result) {
-        pixelHandles.clear()
-        PixelTracker.shutdown()
-        sendEvent(PixelEvents.SHUTDOWN, mapOf("status" to PixelEvents.SUCCESS))
-        result.success(null)
-    }
-
-    private fun handleStartPixel(call: MethodCall, result: Result) {
-        val pixelId = call.argument<String>("pixelId")
-        if (pixelId == null) {
-            result.error("INVALID_ARGUMENT", "pixelId required", null)
-            return
-        }
-
-        val handle = pixelHandles[pixelId]
-        if (handle == null) {
-            result.error("PIXEL_NOT_FOUND", "Pixel with id $pixelId not found", null)
-            return
-        }
-
-        handle.start()
-        result.success(null)
-    }
-
-    private fun handleStopPixel(call: MethodCall, result: Result) {
-        val pixelId = call.argument<String>("pixelId")
-        if (pixelId == null) {
-            result.error("INVALID_ARGUMENT", "pixelId required", null)
-            return
-        }
-
-        val handle = pixelHandles[pixelId]
-        if (handle == null) {
-            result.error("PIXEL_NOT_FOUND", "Pixel with id $pixelId not found", null)
-            return
-        }
-
-        handle.stop()
-        result.success(null)
-    }
-
-    private fun handleDestroyPixel(call: MethodCall, result: Result) {
-        val pixelId = call.argument<String>("pixelId")
-        if (pixelId == null) {
-            result.error("INVALID_ARGUMENT", "pixelId required", null)
-            return
-        }
-
-        val handle = pixelHandles.remove(pixelId)
-        handle?.destroy()
-        result.success(null)
-    }
-
-    private fun handleUpdateRefreshTime(call: MethodCall, result: Result) {
-        val pixelId = call.argument<String>("pixelId")
-        if (pixelId == null) {
-            result.error("INVALID_ARGUMENT", "pixelId required", null)
-            return
-        }
-
-        val seconds = call.argument<Int>("seconds")?.toLong()
-        if (seconds == null) {
-            result.error("INVALID_ARGUMENT", "seconds required", null)
-            return
-        }
-
-        val handle = pixelHandles[pixelId]
-        if (handle == null) {
-            result.error("PIXEL_NOT_FOUND", "Pixel with id $pixelId not found", null)
-            return
-        }
-
-        handle.updateRefreshTime(seconds)
-        result.success(null)
-    }
-
-    private fun handleSetVisibilityCheckInterval(call: MethodCall, result: Result) {
-        val pixelId = call.argument<String>("pixelId")
-        if (pixelId == null) {
-            result.error("INVALID_ARGUMENT", "pixelId required", null)
-            return
-        }
-
-        val seconds = call.argument<Int>("seconds")?.toLong()
-        if (seconds == null) {
-            result.error("INVALID_ARGUMENT", "seconds required", null)
-            return
-        }
-
-        val handle = pixelHandles[pixelId]
-        if (handle == null) {
-            result.error("PIXEL_NOT_FOUND", "Pixel with id $pixelId not found", null)
-            return
-        }
-
-        handle.setVisibilityCheckInterval(seconds)
-        result.success(null)
-    }
-
-    private fun handleGetPixelStats(call: MethodCall, result: Result) {
-        val pixelId = call.argument<String>("pixelId")
-        if (pixelId == null) {
-            result.error("INVALID_ARGUMENT", "pixelId required", null)
-            return
-        }
-
-        val handle = pixelHandles[pixelId]
-        if (handle == null) {
-            result.error("PIXEL_NOT_FOUND", "Pixel with id $pixelId not found", null)
-            return
-        }
-
-        val stats = handle.getStats()
-        result.success(
-            mapOf(
-                "totalAppearances" to stats.totalAppearances.get(),
-                "isCurrentlyVisible" to stats.isCurrentlyVisible,
-                "refreshEnabled" to stats.refreshEnabled,
-                "nextRefreshInMs" to stats.nextRefreshInMs
             )
         )
     }
 
-    private fun createPixelEventListener(pixelId: String): PixelEventListener {
-        return object : PixelEventListener {
-            override fun onAppearance(pixelId: String, timestamp: String) {
-                sendEvent(
-                    PixelEvents.PIXEL_EVENT,
-                    mapOf(
-                        "pixelId" to pixelId,
-                        "type" to PixelEvents.APPEARANCE,
-                        "timestamp" to timestamp
-                    )
-                )
+    override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
+        when (call.method) {
+            "initialize" -> {
+                val baseUrl = call.argument<String>("baseUrl") ?: ""
+                val debug = call.argument<Boolean>("debug") ?: false
+
+                if (baseUrl.isBlank()) {
+                    result.error("INVALID_ARGUMENT", "baseUrl empty", null)
+                    return
+                }
+
+                PixelTracker.initialize(baseUrl, debug) { status ->
+                    when (status) {
+                        is InitStatus.Success -> {
+                            sendEvent("initialized", mapOf("status" to "success"))
+                            result.success(null)
+                        }
+                        is InitStatus.Failure -> {
+                            sendEvent("initialized", mapOf("status" to "failure"))
+                            result.error("INIT_FAILED", status.reason, null)
+                        }
+                    }
+                }
             }
 
-            override fun onDisappearance(pixelId: String, timestamp: String) {
-                sendEvent(
-                    PixelEvents.PIXEL_EVENT,
-                    mapOf(
-                        "pixelId" to pixelId,
-                        "type" to PixelEvents.DISAPPEARANCE,
-                        "timestamp" to timestamp
-                    )
-                )
+            "isInitialized" -> {
+                result.success(PixelTracker.isInitialized())
             }
 
-            override fun onRefresh(pixelId: String, timestamp: String) {
-                sendEvent(
-                    PixelEvents.PIXEL_EVENT,
-                    mapOf(
-                        "pixelId" to pixelId,
-                        "type" to PixelEvents.REFRESH,
-                        "timestamp" to timestamp
-                    )
-                )
+            "shutdown" -> {
+                pixelHandles.clear()
+                PixelTracker.shutdown()
+                sendEvent("shutdown", emptyMap())
+                result.success(null)
             }
 
-            override fun onError(pixelId: String, error: String, timestamp: String) {
-                sendEvent(
-                    PixelEvents.PIXEL_EVENT,
-                    mapOf(
-                        "pixelId" to pixelId,
-                        "type" to PixelEvents.ERROR,
-                        "error" to error,
-                        "timestamp" to timestamp
-                    )
-                )
+            // PixelHandle methods
+            "startPixel" -> {
+                val pixelId = call.argument<String>("pixelId")
+                if (pixelId == null) {
+                    result.error("INVALID_ARGUMENT", "pixelId required", null)
+                    return
+                }
+                val handle = pixelHandles[pixelId]
+                if (handle == null) {
+                    result.error("PIXEL_NOT_FOUND", "Pixel not found", null)
+                    return
+                }
+                handle.start()
+                result.success(null)
             }
+
+            "stopPixel" -> {
+                val pixelId = call.argument<String>("pixelId")
+                if (pixelId == null) {
+                    result.error("INVALID_ARGUMENT", "pixelId required", null)
+                    return
+                }
+                val handle = pixelHandles[pixelId]
+                if (handle == null) {
+                    result.error("PIXEL_NOT_FOUND", "Pixel not found", null)
+                    return
+                }
+                handle.stop()
+                result.success(null)
+            }
+
+            "destroyPixel" -> {
+                val pixelId = call.argument<String>("pixelId")
+                if (pixelId == null) {
+                    result.error("INVALID_ARGUMENT", "pixelId required", null)
+                    return
+                }
+                val handle = pixelHandles.remove(pixelId)
+                handle?.destroy()
+                result.success(null)
+            }
+
+            "updateRefreshTime" -> {
+                val pixelId = call.argument<String>("pixelId")
+                val seconds = call.argument<Int>("seconds")?.toLong()
+                if (pixelId == null || seconds == null) {
+                    result.error("INVALID_ARGUMENT", "pixelId and seconds required", null)
+                    return
+                }
+                val handle = pixelHandles[pixelId]
+                if (handle == null) {
+                    result.error("PIXEL_NOT_FOUND", "Pixel not found", null)
+                    return
+                }
+                handle.updateRefreshTime(seconds)
+                result.success(null)
+            }
+
+            "setVisibilityCheckInterval" -> {
+                val pixelId = call.argument<String>("pixelId")
+                val seconds = call.argument<Int>("seconds")?.toLong()
+                if (pixelId == null || seconds == null) {
+                    result.error("INVALID_ARGUMENT", "pixelId and seconds required", null)
+                    return
+                }
+                val handle = pixelHandles[pixelId]
+                if (handle == null) {
+                    result.error("PIXEL_NOT_FOUND", "Pixel not found", null)
+                    return
+                }
+                handle.setVisibilityCheckInterval(seconds)
+                result.success(null)
+            }
+
+            "getPixelStats" -> {
+                val pixelId = call.argument<String>("pixelId")
+                if (pixelId == null) {
+                    result.error("INVALID_ARGUMENT", "pixelId required", null)
+                    return
+                }
+                val handle = pixelHandles[pixelId]
+                if (handle == null) {
+                    result.error("PIXEL_NOT_FOUND", "Pixel not found", null)
+                    return
+                }
+                val stats = handle.getStats()
+                result.success(mapOf(
+                    "totalAppearances" to stats.totalAppearances.get(),
+                    "isCurrentlyVisible" to stats.isCurrentlyVisible,
+                    "refreshEnabled" to stats.refreshEnabled,
+                    "nextRefreshInMs" to stats.nextRefreshInMs
+                ))
+            }
+
+            else -> result.notImplemented()
         }
     }
 
-    private fun sendEvent(eventType: String, data: Map<String, Any>) {
-        val event = mapOf(
-            "event" to eventType,
-            "data" to data
-        )
-        mainHandler.post {
-            eventSink?.success(event)
+    private fun sendEvent(type: String, data: Map<String, Any>) {
+        Handler(Looper.getMainLooper()).post {
+            eventSink?.success(mapOf("event" to type, "data" to data))
         }
     }
 
+    // ActivityAware implementation
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         activity = binding.activity
     }
@@ -350,12 +225,8 @@ class VeonPixelTrackerFlutterPlugin :
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         methodChannel.setMethodCallHandler(null)
         eventChannel.setStreamHandler(null)
-
-        pixelHandles.values.forEach { it.destroy() }
         pixelHandles.clear()
-        pixelViewFactories.clear()
         eventSink = null
-        binaryMessenger = null
     }
 
 }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
 import com.veonadtech.pixeltracker.PixelTracker
@@ -12,8 +13,8 @@ import com.veonadtech.pixeltracker.api.PixelEventListener
 import com.veonadtech.pixeltracker.api.PixelHandle
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
+import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.platform.PlatformView
-import java.util.HashMap
 
 class PixelTrackerPlatformView(
     context: Context,
@@ -32,14 +33,19 @@ class PixelTrackerPlatformView(
         private const val TAG = "PixelTrackerPlatformView"
     }
 
-    private val container: FrameLayout = FrameLayout(context)
+    private val container = FrameLayout(context)
     private var pixelHandle: PixelHandle? = null
-    private val eventChannel: EventChannel
-    private var eventSink: EventChannel.EventSink? = null
     private val mainHandler = Handler(Looper.getMainLooper())
 
+    private val eventChannel = EventChannel(messenger, "veon_pixel_tracker/view_events_$viewId")
+    private var eventSink: EventChannel.EventSink? = null
+
     init {
-        eventChannel = EventChannel(messenger, "veon_pixel_tracker/view_events_$viewId")
+        setupEventChannel()
+        createPixel(context)
+    }
+
+    private fun setupEventChannel() {
         eventChannel.setStreamHandler(object : EventChannel.StreamHandler {
             override fun onListen(arguments: Any?, sink: EventChannel.EventSink) {
                 eventSink = sink
@@ -49,11 +55,9 @@ class PixelTrackerPlatformView(
                 eventSink = null
             }
         })
-
-        createAndAttachPixel(context)
     }
 
-    private fun createAndAttachPixel(context: Context) {
+    private fun createPixel(context: Context) {
         val parsedColor = try {
             colorHex?.let { Color.parseColor(it) }
         } catch (e: IllegalArgumentException) {
@@ -68,11 +72,7 @@ class PixelTrackerPlatformView(
             color = parsedColor
         )
 
-        pixelHandle = PixelTracker.attach(
-            context = context,
-            container = container,
-            config = config
-        )
+        pixelHandle = PixelTracker.attach(context, container, config)
 
         pixelHandle?.let { handle ->
             onPixelCreated(pixelId, handle)
@@ -101,26 +101,22 @@ class PixelTrackerPlatformView(
     }
 
     private fun sendEvent(type: String, timestamp: String, error: String? = null) {
-        val map = HashMap<String, Any?>()
-        map["type"] = type
-        map["timestamp"] = timestamp
-        map["error"] = error
         val sink = eventSink ?: return
-        mainHandler.post {
-            sink.success(map)
-        }
+        val event = mapOf("type" to type, "timestamp" to timestamp, "error" to error)
+        mainHandler.post { sink.success(event) }
     }
 
     override fun getView(): View = container
 
     override fun dispose() {
         pixelHandle?.let {
-            it.destroy()
             onPixelDestroyed(pixelId)
+            it.destroy()
         }
         container.removeAllViews()
         pixelHandle = null
         eventChannel.setStreamHandler(null)
+        eventSink = null
     }
 
 }

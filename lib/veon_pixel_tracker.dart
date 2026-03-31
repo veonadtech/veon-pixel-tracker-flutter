@@ -1,29 +1,21 @@
 import 'dart:async';
-
 import 'package:flutter/services.dart';
-import 'package:veon_pixel_tracker_flutter/veon_pixel_tracker.dart';
 
-export 'src/core/pixel_handle.dart';
+export 'src/core/pixel_controller.dart';
 export 'src/models/pixel_event.dart';
 export 'src/models/pixel_stats.dart';
 export 'src/widgets/pixel_tracker_view.dart';
 
 class VeonPixelTracker {
-  static const MethodChannel _methodChannel = MethodChannel(
-    "veon_pixel_tracker/sdk",
-  );
-
-  static const EventChannel _eventChannel = EventChannel(
-    "veon_pixel_tracker/events",
-  );
+  static const MethodChannel _methodChannel = MethodChannel("veon_pixel_tracker/sdk");
+  static const EventChannel _eventChannel = EventChannel("veon_pixel_tracker/events");
 
   static Stream<Map<String, dynamic>>? _eventStream;
 
-  /// Stream of SDK events (initialization, shutdown)
   static Stream<Map<String, dynamic>> get events {
-    _eventStream ??= _eventChannel.receiveBroadcastStream().map(
-      (event) => Map<String, dynamic>.from(event),
-    );
+    _eventStream ??= _eventChannel
+        .receiveBroadcastStream()
+        .map((event) => Map<String, dynamic>.from(event));
     return _eventStream!;
   }
 

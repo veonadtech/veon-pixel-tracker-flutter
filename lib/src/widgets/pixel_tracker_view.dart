@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:veon_pixel_tracker_flutter/src/core/pixel_handle.dart';
 import 'package:veon_pixel_tracker_flutter/src/models/pixel_event.dart';
+import 'package:veon_pixel_tracker_flutter/src/core/pixel_controller.dart';
 
 class PixelTrackerView extends StatefulWidget {
   final String pixelId;
@@ -12,7 +12,7 @@ class PixelTrackerView extends StatefulWidget {
   final int visibilityThreshold;
   final String? color;
   final Function(PixelEvent)? onEvent;
-  final Function(PixelHandle)? onPlatformViewCreated;
+  final Function(PixelController)? onPixelCreated;
 
   const PixelTrackerView({
     super.key,
@@ -22,7 +22,7 @@ class PixelTrackerView extends StatefulWidget {
     this.visibilityThreshold = 1,
     this.color,
     this.onEvent,
-    this.onPlatformViewCreated
+    this.onPixelCreated,
   });
 
   @override
@@ -30,25 +30,21 @@ class PixelTrackerView extends StatefulWidget {
 }
 
 class _PixelTrackerViewState extends State<PixelTrackerView> {
-  final _eventChannels = <int, EventChannel>{};
   StreamSubscription? _eventSubscription;
-  PixelHandle? _pixelHandle;
+  bool _isCreated = false;
+  PixelController? _controller;
 
   void _onPlatformViewCreated(int viewId) {
-    _pixelHandle = PixelHandle(widget.pixelId);
+    if (_isCreated) return;
+    _isCreated = true;
 
-    widget.onPlatformViewCreated?.call(_pixelHandle!);
+    _controller = PixelController(widget.pixelId);
+    widget.onPixelCreated?.call(_controller!);
 
     final eventChannel = EventChannel('veon_pixel_tracker/view_events_$viewId');
-    _eventChannels[viewId] = eventChannel;
-
     _eventSubscription = eventChannel.receiveBroadcastStream().listen((event) {
-      final eventMap = Map<String, dynamic>.from(event);
-      final type = eventMap['type'] as String;
-      final timestamp = eventMap['timestamp'] as String;
-      final error = eventMap['error'] as String?;
-
-      widget.onEvent?.call(PixelEvent(type, timestamp, error));
+      final map = Map<String, dynamic>.from(event);
+      widget.onEvent?.call(PixelEvent.fromMap(map));
     });
   }
 
@@ -75,8 +71,7 @@ class _PixelTrackerViewState extends State<PixelTrackerView> {
   @override
   void dispose() {
     _eventSubscription?.cancel();
-    _eventChannels.clear();
-    _pixelHandle?.destroy();
+    _controller?.destroy();
     super.dispose();
   }
 
