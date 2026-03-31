@@ -13,7 +13,6 @@ import com.veonadtech.pixeltracker.api.PixelEventListener
 import com.veonadtech.pixeltracker.api.PixelHandle
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
-import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.platform.PlatformView
 
 class PixelTrackerPlatformView(
@@ -110,8 +109,8 @@ class PixelTrackerPlatformView(
 
     override fun dispose() {
         pixelHandle?.let {
-            onPixelDestroyed(pixelId)
             it.destroy()
+            onPixelDestroyed(pixelId)
         }
         container.removeAllViews()
         pixelHandle = null

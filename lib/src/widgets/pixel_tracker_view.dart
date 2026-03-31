@@ -72,7 +72,6 @@ class _PixelTrackerViewState extends State<PixelTrackerView> {
   @override
   void dispose() {
     _eventSubscription?.cancel();
-    _controller?.destroy();
     super.dispose();
   }
 

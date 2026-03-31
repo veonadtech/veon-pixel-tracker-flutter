@@ -14,7 +14,7 @@ class PixelTrackerViewFactory(
 ) : PlatformViewFactory(StandardMessageCodec.INSTANCE) {
 
     override fun create(context: Context, viewId: Int, args: Any?): PlatformView {
-        val params = args as? Map<*, *> ?: emptyMap<String, Any>()
+        val params = args as? Map<String, Any> ?: emptyMap()
 
         return PixelTrackerPlatformView(
             context = context,
