@@ -1,6 +1,6 @@
 name: veon_pixel_tracker_flutter
-description: "A Flutter plugin for Pixel Tracker"
-version: 0.0.1
+description: "Flutter plugin for Veon Pixel Tracker SDK"
+version: 0.1.0
 homepage:
 
 environment:

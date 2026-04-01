@@ -17,6 +17,8 @@ flutter_*.log
 **/android/app/**/gradlew.bat
 
 # iOS
+**/ios/Runner.xcodeproj/project.pbxproj
+**/ios/Runner.xcworkspace/
 **/ios/Flutter/Generated.xcconfig
 **/ios/Flutter/flutter_export_environment.sh
 **/ios/Pods/

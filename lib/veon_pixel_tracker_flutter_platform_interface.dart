@@ -8,7 +8,8 @@ abstract class VeonPixelTrackerFlutterPlatform extends PlatformInterface {
 
   static final Object _token = Object();
 
-  static VeonPixelTrackerFlutterPlatform _instance = MethodChannelVeonPixelTrackerFlutter();
+  static VeonPixelTrackerFlutterPlatform _instance =
+      MethodChannelVeonPixelTrackerFlutter();
 
   /// The default instance of [VeonPixelTrackerFlutterPlatform] to use.
   ///
@@ -26,4 +27,5 @@ abstract class VeonPixelTrackerFlutterPlatform extends PlatformInterface {
   Future<String?> getPlatformVersion() {
     throw UnimplementedError('platformVersion() has not been implemented.');
   }
+
 }
