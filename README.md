@@ -29,7 +29,7 @@ dependencies:
   veon_pixel_tracker_flutter:
     git:
       url: git@github.com:veonadtech/veon-pixel-tracker-flutter.git
-      ref: 0.1.0 // replace with the version you want to use
+      ref: 0.2.0 // replace with the version you want to use
 ```
 
 
