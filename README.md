@@ -15,9 +15,9 @@
 * Flutter version at least `3.32.8`
 ### Android
 * `minSdkVersion` at least `21`
-* `compileSdkVersion` at least `33`
-* `Java Version` at least `11`
-* 'Kotlin Version' at least `1.8.0'
+* `compileSdkVersion` at least `36`
+* `Java Version` at least `17`
+* 'Kotlin Version' at least `1.9.0'
 ### iOS
 * not implemented yet
 
@@ -29,7 +29,7 @@ dependencies:
   veon_pixel_tracker_flutter:
     git:
       url: git@github.com:veonadtech/veon-pixel-tracker-flutter.git
-      ref: 0.1.0 // replace with the version you want to use
+      ref: release/0.2.0 // replace with the version you want to use
 ```
 
 
