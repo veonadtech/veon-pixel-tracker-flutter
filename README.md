@@ -15,9 +15,9 @@
 * Flutter version at least `3.32.8`
 ### Android
 * `minSdkVersion` at least `21`
-* `compileSdkVersion` at least `33`
-* `Java Version` at least `11`
-* 'Kotlin Version' at least `1.8.0'
+* `compileSdkVersion` at least `36`
+* `Java Version` at least `17`
+* 'Kotlin Version' at least `1.9.0'
 ### iOS
 * not implemented yet
 
