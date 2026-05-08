@@ -30,7 +30,6 @@ class PixelTrackerPlatformViewTest {
     @Before
     fun setUp() {
         mockkObject(PixelTracker)
-        mockkConstructor(FrameLayout::class)
         every { PixelTracker.attach(any(), any(), any()) } returns mockHandle
     }
 
@@ -102,21 +101,26 @@ class PixelTrackerPlatformViewTest {
 
     @Test
     fun `dispose removes all views from container`() {
-        val mockLayout: FrameLayout = mockk(relaxed = true)
-        // FrameLayout constructor is mocked — any removeAllViews call should pass through
         val view = createView()
+        val container = view.getView() as FrameLayout
+        // After dispose the container should have no children
         view.dispose()
-
-        // Verify removeAllViews was called on the view's container
-        // (via the real container which is a FrameLayout created in init)
-        verify(atLeast = 0) { mockLayout.removeAllViews() }
+        assert(container.childCount == 0)
     }
 
     @Test
     fun `invalid color hex falls back gracefully without crashing`() {
-        // Should not throw even with an invalid hex string
-        val view = createView(colorHex = "not_a_color")
-        assert(createdPixelId != null)
+        createView(colorHex = "not_a_color")
+
+        verify {
+            PixelTracker.attach(
+                context,
+                any(),
+                match<PixelConfig> {
+                    it.color == null
+                }
+            )
+        }
     }
 
     @Test

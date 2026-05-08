@@ -3,73 +3,88 @@ import 'package:veon_pixel_tracker_flutter/src/models/pixel_event.dart';
 
 void main() {
   group('PixelEvent', () {
-    group('fromMap', () {
-      test('creates event with all fields', () {
-        final map = {
-          'type': 'appearance',
-          'timestamp': '2024-01-01T10:00:00Z',
-          'error': null,
-        };
-        final event = PixelEvent.fromMap(map);
-
-        expect(event.type, 'appearance');
-        expect(event.timestamp, '2024-01-01T10:00:00Z');
-        expect(event.error, isNull);
+    test('fromMap parses appearance event', () {
+      final event = PixelEvent.fromMap({
+        'type': 'appearance',
+        'timestamp': '2024-01-01T10:00:00Z',
+        'error': null,
       });
 
-      test('creates error event with error message', () {
-        final map = {
-          'type': 'error',
-          'timestamp': '2024-01-01T10:00:00Z',
-          'error': 'Network timeout',
-        };
-        final event = PixelEvent.fromMap(map);
-
-        expect(event.type, 'error');
-        expect(event.error, 'Network timeout');
-      });
+      expect(event.type, 'appearance');
+      expect(event.timestamp, '2024-01-01T10:00:00Z');
+      expect(event.error, isNull);
     });
 
-    group('type flags', () {
-      test('isAppearance returns true for appearance type', () {
-        final event = PixelEvent('appearance', '2024-01-01T10:00:00Z');
-        expect(event.isAppearance, isTrue);
-        expect(event.isDisappearance, isFalse);
-        expect(event.isRefresh, isFalse);
-        expect(event.isError, isFalse);
+    test('fromMap parses error event', () {
+      final event = PixelEvent.fromMap({
+        'type': 'error',
+        'timestamp': '2024-01-01T10:00:00Z',
+        'error': 'Network timeout',
       });
 
-      test('isDisappearance returns true for disappearance type', () {
-        final event = PixelEvent('disappearance', '2024-01-01T10:00:00Z');
-        expect(event.isDisappearance, isTrue);
-        expect(event.isAppearance, isFalse);
-        expect(event.isRefresh, isFalse);
-        expect(event.isError, isFalse);
-      });
+      expect(event.type, 'error');
+      expect(event.error, 'Network timeout');
+    });
 
-      test('isRefresh returns true for refresh type', () {
-        final event = PixelEvent('refresh', '2024-01-01T10:00:00Z');
-        expect(event.isRefresh, isTrue);
-        expect(event.isAppearance, isFalse);
-        expect(event.isDisappearance, isFalse);
-        expect(event.isError, isFalse);
-      });
+    test('isAppearance true only for appearance', () {
+      final event = PixelEvent(
+        'appearance',
+        '2024-01-01T10:00:00Z',
+      );
 
-      test('isError returns true for error type', () {
-        final event = PixelEvent('error', '2024-01-01T10:00:00Z', 'Something went wrong');
-        expect(event.isError, isTrue);
-        expect(event.isAppearance, isFalse);
-        expect(event.isDisappearance, isFalse);
-        expect(event.isRefresh, isFalse);
-      });
+      expect(event.isAppearance, isTrue);
+      expect(event.isDisappearance, isFalse);
+      expect(event.isRefresh, isFalse);
+      expect(event.isError, isFalse);
+    });
 
-      test('all flags false for unknown type', () {
-        final event = PixelEvent('unknown', '2024-01-01T10:00:00Z');
-        expect(event.isAppearance, isFalse);
-        expect(event.isDisappearance, isFalse);
-        expect(event.isRefresh, isFalse);
-        expect(event.isError, isFalse);
-      });
+    test('isDisappearance true only for disappearance', () {
+      final event = PixelEvent(
+        'disappearance',
+        '2024-01-01T10:00:00Z',
+      );
+
+      expect(event.isAppearance, isFalse);
+      expect(event.isDisappearance, isTrue);
+      expect(event.isRefresh, isFalse);
+      expect(event.isError, isFalse);
+    });
+
+    test('isRefresh true only for refresh', () {
+      final event = PixelEvent(
+        'refresh',
+        '2024-01-01T10:00:00Z',
+      );
+
+      expect(event.isAppearance, isFalse);
+      expect(event.isDisappearance, isFalse);
+      expect(event.isRefresh, isTrue);
+      expect(event.isError, isFalse);
+    });
+
+    test('isError true only for error', () {
+      final event = PixelEvent(
+        'error',
+        '2024-01-01T10:00:00Z',
+        'Something failed',
+      );
+
+      expect(event.isAppearance, isFalse);
+      expect(event.isDisappearance, isFalse);
+      expect(event.isRefresh, isFalse);
+      expect(event.isError, isTrue);
+    });
+
+    test('all flags false for unknown type', () {
+      final event = PixelEvent(
+        'unknown',
+        '2024-01-01T10:00:00Z',
+      );
+
+      expect(event.isAppearance, isFalse);
+      expect(event.isDisappearance, isFalse);
+      expect(event.isRefresh, isFalse);
+      expect(event.isError, isFalse);
     });
   });
 }
