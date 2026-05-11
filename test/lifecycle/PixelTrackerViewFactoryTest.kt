@@ -1,7 +1,6 @@
 package com.veon.veon_pixel_tracker_flutter
 
 import android.content.Context
-import com.veonadtech.pixeltracker.PixelTracker
 import com.veonadtech.pixeltracker.api.PixelHandle
 import io.flutter.plugin.common.BinaryMessenger
 import io.mockk.*
@@ -22,10 +21,11 @@ class PixelTrackerViewFactoryTest {
 
     @Before
     fun setUp() {
-        mockkObject(PixelTracker)
-        every { PixelTracker.attach(any(), any(), any()) } returns mockk(relaxed = true)
         mockkConstructor(PixelTrackerPlatformView::class)
-        every { anyConstructed<PixelTrackerPlatformView>().getView() } returns mockk(relaxed = true)
+
+        every {
+            anyConstructed<PixelTrackerPlatformView>().getView()
+        } returns mockk(relaxed = true)
     }
 
     @After
@@ -34,7 +34,7 @@ class PixelTrackerViewFactoryTest {
     }
 
     @Test
-    fun `create with full params returns PlatformView`() {
+    fun `create passes full params to PixelTrackerPlatformView`() {
         val params = mapOf(
             "pixelId" to "factory_pixel",
             "refreshTimeSeconds" to 8,
@@ -43,29 +43,65 @@ class PixelTrackerViewFactoryTest {
             "color" to "#AABBCC",
         )
 
-        val view = factory.create(context, 1, params)
+        factory.create(context, 1, params)
 
-        assert(view != null)
+        verify {
+            constructedWith<PixelTrackerPlatformView>(
+                EqMatcher(context),
+                EqMatcher(1),
+                EqMatcher("factory_pixel"),
+                EqMatcher(8L),
+                EqMatcher(32),
+                EqMatcher(60),
+                EqMatcher("#AABBCC"),
+                EqMatcher(messenger),
+                any(),
+                any()
+            )
+        }
     }
 
     @Test
-    fun `create with null args does not throw`() {
-        val view = factory.create(context, 2, null)
+    fun `create with null args uses defaults`() {
+        factory.create(context, 2, null)
 
-        assert(view != null)
+        verify {
+            constructedWith<PixelTrackerPlatformView>(
+                EqMatcher(context),
+                EqMatcher(2),
+                EqMatcher("pixel_2"),
+                EqMatcher(0L),
+                EqMatcher(1),
+                EqMatcher(1),
+                EqMatcher(null),
+                EqMatcher(messenger),
+                any(),
+                any()
+            )
+        }
     }
 
     @Test
-    fun `create with empty map does not throw`() {
-        val view = factory.create(context, 3, emptyMap<String, Any>())
+    fun `pixelId defaults to pixel_viewId when missing`() {
+        factory.create(
+            context,
+            99,
+            mapOf("refreshTimeSeconds" to 5)
+        )
 
-        assert(view != null)
-    }
-
-    @Test
-    fun `create returns PixelTrackerPlatformView instance`() {
-        val view = factory.create(context, 4, mapOf("pixelId" to "p"))
-
-        assert(view is PixelTrackerPlatformView)
+        verify {
+            constructedWith<PixelTrackerPlatformView>(
+                EqMatcher(context),
+                EqMatcher(99),
+                EqMatcher("pixel_99"),
+                EqMatcher(5L),
+                EqMatcher(1),
+                EqMatcher(1),
+                EqMatcher(null),
+                EqMatcher(messenger),
+                any(),
+                any()
+            )
+        }
     }
 }
