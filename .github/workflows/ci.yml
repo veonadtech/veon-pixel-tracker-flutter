@@ -7,35 +7,42 @@ on:
       - develop
       - feature/**
   pull_request:
+    branches:
+      - main
+      - develop
+  merge_group:
+    types:
+      - checks_requested
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  FLUTTER_VERSION: 3.32.8
+  JAVA_VERSION: 17
+
 jobs:
-  flutter-checks:
-    name: Flutter Checks
+  lint:
+    name: Lint & Format
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@44ac965b96f18d999d5af69dd4a9d0b6692918ec # v2.18.0
         with:
-          flutter-version: 3.29.0
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
-      - name: Flutter Version
-        run: flutter --version
+      - name: Setup Java
+        uses: actions/setup-java@8df1039502a15bceb9433410b1a100fbe190c53b # v4.5.0
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
 
       - name: Install dependencies
         run: flutter pub get
@@ -46,54 +53,138 @@ jobs:
       - name: Analyze project
         run: flutter analyze
 
-      - name: Run Dart tests
-        run: flutter test --coverage
-
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: flutter-coverage
-          path: coverage/lcov.info
-
-  build-example-app:
-    name: Build Example App
+  test:
+    name: Unit Tests
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: example
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@44ac965b96f18d999d5af69dd4a9d0b6692918ec # v2.18.0
         with:
-          flutter-version: 3.27.0
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
+
+      - name: Setup Java
+        uses: actions/setup-java@8df1039502a15bceb9433410b1a100fbe190c53b # v4.5.0
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Analyze example app
-        run: flutter analyze
+      - name: Run tests with coverage
+        run: flutter test --coverage --test-randomize-ordering-seed=random
 
-      - name: Run example tests
-        run: flutter test
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v5.0.0
+        with:
+          files: coverage/lcov.info
+          flags: unittests
+          name: flutter-coverage
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Build APK
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+
+  build-example-android:
+    name: Build Android Example
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+
+    env:
+      TURBO_CACHE_DIR: .turbo/android
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@44ac965b96f18d999d5af69dd4a9d0b6692918ec # v2.18.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Setup Java
+        uses: actions/setup-java@8df1039502a15bceb9433410b1a100fbe190c53b # v4.5.0
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Cache Gradle
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            ~/.gradle/wrapper
+            ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build example APK
+        working-directory: example
         run: flutter build apk --debug
 
-      - name: Upload APK artifact (optional)
-        uses: actions/upload-artifact@v4
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: example-app-debug
           path: example/build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 7
+
+  build-example-ios:
+    name: Build iOS Example (macOS)
+    runs-on: macos-latest
+    needs: [lint, test]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@44ac965b96f18d999d5af69dd4a9d0b6692918ec # v2.18.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Setup Java
+        uses: actions/setup-java@8df1039502a15bceb9433410b1a100fbe190c53b # v4.5.0
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Install CocoaPods
+        run: |
+          brew install cocoapods
+          pod --version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS example
+        working-directory: example
+        run: |
+          flutter build ios --no-codesign
+        env:
+          flutter_ios_icon_name: flutter_icon_name
+
+      - name: Upload iOS build artifact
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: example-ios-build
+          path: example/build/ios/iphoneos/
+          retention-days: 7
