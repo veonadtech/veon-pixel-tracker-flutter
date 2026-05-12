@@ -247,6 +247,20 @@ Check out the /example folder for a complete working example with:
 - Statistics display
 - Interactive controls
 
+## Testing
+
+Unit Tests
+The plugin includes comprehensive unit tests covering both Dart and Android native layers.
+
+Running Tests
+bash
+### Run all tests
+flutter test
+
+### Run specific test files
+flutter test test/unit/pixel_controller_test.dart
+flutter test test/unit/veon_pixel_tracker_test.dart
+
 
 ## API Reference
 
