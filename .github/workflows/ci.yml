@@ -29,17 +29,17 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@v4
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@44ac965b96f18d999d5af69dd4a9d0b6692918ec # v2.18.0
+        uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
       - name: Setup Java
-        uses: actions/setup-java@8df1039502a15bceb9433410b1a100fbe190c53b # v4.5.0
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
@@ -59,17 +59,17 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@v4
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@44ac965b96f18d999d5af69dd4a9d0b6692918ec # v2.18.0
+        uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
       - name: Setup Java
-        uses: actions/setup-java@8df1039502a15bceb9433410b1a100fbe190c53b # v4.5.0
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
@@ -81,7 +81,7 @@ jobs:
         run: flutter test --coverage --test-randomize-ordering-seed=random
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v5.0.0
+        uses: codecov/codecov-action@v5
         with:
           files: coverage/lcov.info
           flags: unittests
@@ -90,7 +90,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: coverage/
@@ -101,28 +101,25 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint, test]
 
-    env:
-      TURBO_CACHE_DIR: .turbo/android
-
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@v4
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@44ac965b96f18d999d5af69dd4a9d0b6692918ec # v2.18.0
+        uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
       - name: Setup Java
-        uses: actions/setup-java@8df1039502a15bceb9433410b1a100fbe190c53b # v4.5.0
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
 
       - name: Cache Gradle
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/wrapper
@@ -139,7 +136,7 @@ jobs:
         run: flutter build apk --debug
 
       - name: Upload APK artifact
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        uses: actions/upload-artifact@v4
         with:
           name: example-app-debug
           path: example/build/app/outputs/flutter-apk/app-debug.apk
@@ -152,17 +149,17 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@v4
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@44ac965b96f18d999d5af69dd4a9d0b6692918ec # v2.18.0
+        uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
       - name: Setup Java
-        uses: actions/setup-java@8df1039502a15bceb9433410b1a100fbe190c53b # v4.5.0
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
@@ -177,13 +174,10 @@ jobs:
 
       - name: Build iOS example
         working-directory: example
-        run: |
-          flutter build ios --no-codesign
-        env:
-          flutter_ios_icon_name: flutter_icon_name
+        run: flutter build ios --no-codesign
 
       - name: Upload iOS build artifact
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        uses: actions/upload-artifact@v4
         with:
           name: example-ios-build
           path: example/build/ios/iphoneos/
