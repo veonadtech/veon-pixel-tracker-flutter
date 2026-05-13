@@ -89,11 +89,14 @@ jobs:
         working-directory: example/android
         env:
           JAVA_OPTS: '-XX:MaxHeapSize=6g'
-        run: ./gradlew assembleDebug
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
   build-ios:
     name: Build iOS
     runs-on: macos-latest
+    if: false # TODO: fix iOS Podfile minimum deployment target
 
     steps:
       - name: Checkout

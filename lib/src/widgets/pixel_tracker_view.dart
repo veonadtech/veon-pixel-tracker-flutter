@@ -32,14 +32,12 @@ class PixelTrackerView extends StatefulWidget {
 class _PixelTrackerViewState extends State<PixelTrackerView> {
   StreamSubscription? _eventSubscription;
   bool _isCreated = false;
-  PixelController? _controller;
 
   void _onPlatformViewCreated(int viewId) {
     if (_isCreated) return;
     _isCreated = true;
 
     final controller = PixelController(widget.pixelId);
-    _controller = controller;
     widget.onPixelCreated?.call(controller);
 
     final eventChannel = EventChannel('veon_pixel_tracker/view_events_$viewId');
