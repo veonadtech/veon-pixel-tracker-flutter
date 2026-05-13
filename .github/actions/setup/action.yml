@@ -15,7 +15,7 @@ runs:
       with:
         channel: stable
         cache: true
-        cache-key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.yaml') }}
+        cache-key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.yaml') }}-v2
 
     - name: Restore pub cache
       id: pub-cache
