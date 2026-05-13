@@ -86,12 +86,11 @@ jobs:
         run: flutter pub get
 
       - name: Build example for Android
-        working-directory: example/android
         env:
           JAVA_OPTS: '-XX:MaxHeapSize=6g'
         run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          chmod +x example/android/gradlew
+          cd example/android && ./gradlew assembleDebug
 
   build-ios:
     name: Build iOS
