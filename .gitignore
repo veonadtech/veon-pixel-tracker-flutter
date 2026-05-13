@@ -48,9 +48,6 @@ Thumbs.db
 **/android/**/*.iml
 **/android/**/captures/
 **/android/**/.cxx/
-**/android/**/gradle/
-**/android/**/gradlew
-**/android/**/gradlew.bat
 
 # iOS
 **/ios/**/.generated/
