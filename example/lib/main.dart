@@ -349,5 +349,4 @@ class _MyAppState extends State<MyApp> {
     VeonPixelTracker.shutdown();
     super.dispose();
   }
-
 }

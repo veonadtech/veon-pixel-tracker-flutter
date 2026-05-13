@@ -74,5 +74,4 @@ class _PixelTrackerViewState extends State<PixelTrackerView> {
     _eventSubscription?.cancel();
     super.dispose();
   }
-
 }

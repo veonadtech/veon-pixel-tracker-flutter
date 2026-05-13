@@ -14,22 +14,22 @@ void main() {
 
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (MethodCall call) async {
-      calls.add(call);
+          calls.add(call);
 
-      switch (call.method) {
-        case 'initialize':
-          return null;
+          switch (call.method) {
+            case 'initialize':
+              return null;
 
-        case 'isInitialized':
-          return true;
+            case 'isInitialized':
+              return true;
 
-        case 'shutdown':
-          return null;
+            case 'shutdown':
+              return null;
 
-        default:
-          return null;
-      }
-    });
+            default:
+              return null;
+          }
+        });
   });
 
   tearDown(() {
@@ -39,21 +39,16 @@ void main() {
 
   group('VeonPixelTracker', () {
     test('initialize sends baseUrl and debug false by default', () async {
-      await VeonPixelTracker.initialize(
-        baseUrl: 'https://example.com/pixel',
-      );
+      await VeonPixelTracker.initialize(baseUrl: 'https://example.com/pixel');
 
       expect(calls, hasLength(1));
 
       expect(calls.single.method, 'initialize');
 
-      expect(
-        calls.single.arguments,
-        {
-          'baseUrl': 'https://example.com/pixel',
-          'debug': false,
-        },
-      );
+      expect(calls.single.arguments, {
+        'baseUrl': 'https://example.com/pixel',
+        'debug': false,
+      });
     });
 
     test('initialize sends debug true when specified', () async {
@@ -62,31 +57,26 @@ void main() {
         debug: true,
       );
 
-      expect(
-        calls.single.arguments,
-        {
-          'baseUrl': 'https://example.com/pixel',
-          'debug': true,
-        },
-      );
+      expect(calls.single.arguments, {
+        'baseUrl': 'https://example.com/pixel',
+        'debug': true,
+      });
     });
 
     test('initialize throws on PlatformException', () async {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (_) async {
-        throw PlatformException(
-          code: 'INIT_FAILED',
-          message: 'Server error',
-        );
-      });
+            throw PlatformException(
+              code: 'INIT_FAILED',
+              message: 'Server error',
+            );
+          });
 
       expect(
-            () => VeonPixelTracker.initialize(
-          baseUrl: 'https://example.com/pixel',
-        ),
+        () => VeonPixelTracker.initialize(baseUrl: 'https://example.com/pixel'),
         throwsA(
           isA<Exception>().having(
-                (e) => e.toString(),
+            (e) => e.toString(),
             'message',
             contains('Failed to initialize'),
           ),
@@ -112,14 +102,14 @@ void main() {
     test('isInitialized throws on PlatformException', () async {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (_) async {
-        throw PlatformException(code: 'ERROR');
-      });
+            throw PlatformException(code: 'ERROR');
+          });
 
       expect(
-            () => VeonPixelTracker.isInitialized(),
+        () => VeonPixelTracker.isInitialized(),
         throwsA(
           isA<Exception>().having(
-                (e) => e.toString(),
+            (e) => e.toString(),
             'message',
             contains('Failed to check initialization'),
           ),
@@ -136,14 +126,14 @@ void main() {
     test('shutdown throws on PlatformException', () async {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (_) async {
-        throw PlatformException(code: 'ERROR');
-      });
+            throw PlatformException(code: 'ERROR');
+          });
 
       expect(
-            () => VeonPixelTracker.shutdown(),
+        () => VeonPixelTracker.shutdown(),
         throwsA(
           isA<Exception>().having(
-                (e) => e.toString(),
+            (e) => e.toString(),
             'message',
             contains('Failed to shutdown'),
           ),
@@ -152,10 +142,7 @@ void main() {
     });
 
     test('events getter returns stream', () {
-      expect(
-        VeonPixelTracker.events,
-        isA<Stream<Map<String, dynamic>>>(),
-      );
+      expect(VeonPixelTracker.events, isA<Stream<Map<String, dynamic>>>());
     });
 
     test('events getter returns same stream instance', () {

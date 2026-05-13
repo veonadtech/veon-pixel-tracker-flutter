@@ -16,21 +16,21 @@ void main() {
 
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (MethodCall call) async {
-      calls.add(call);
+          calls.add(call);
 
-      switch (call.method) {
-        case 'getPixelStats':
-          return {
-            'totalAppearances': 3,
-            'isCurrentlyVisible': true,
-            'refreshEnabled': true,
-            'nextRefreshInMs': 4000,
-          };
+          switch (call.method) {
+            case 'getPixelStats':
+              return {
+                'totalAppearances': 3,
+                'isCurrentlyVisible': true,
+                'refreshEnabled': true,
+                'nextRefreshInMs': 4000,
+              };
 
-        default:
-          return null;
-      }
-    });
+            default:
+              return null;
+          }
+        });
   });
 
   tearDown(() {
@@ -52,12 +52,7 @@ void main() {
 
       expect(calls.single.method, 'startPixel');
 
-      expect(
-        calls.single.arguments,
-        {
-          'pixelId': testPixelId,
-        },
-      );
+      expect(calls.single.arguments, {'pixelId': testPixelId});
     });
 
     test('stop calls stopPixel', () async {
@@ -67,12 +62,7 @@ void main() {
 
       expect(calls.single.method, 'stopPixel');
 
-      expect(
-        calls.single.arguments,
-        {
-          'pixelId': testPixelId,
-        },
-      );
+      expect(calls.single.arguments, {'pixelId': testPixelId});
     });
 
     test('destroy calls destroyPixel', () async {
@@ -82,12 +72,7 @@ void main() {
 
       expect(calls.single.method, 'destroyPixel');
 
-      expect(
-        calls.single.arguments,
-        {
-          'pixelId': testPixelId,
-        },
-      );
+      expect(calls.single.arguments, {'pixelId': testPixelId});
     });
 
     test('updateRefreshTime sends seconds', () async {
@@ -97,13 +82,7 @@ void main() {
 
       expect(calls.single.method, 'updateRefreshTime');
 
-      expect(
-        calls.single.arguments,
-        {
-          'pixelId': testPixelId,
-          'seconds': 10,
-        },
-      );
+      expect(calls.single.arguments, {'pixelId': testPixelId, 'seconds': 10});
     });
 
     test('setVisibilityCheckInterval sends seconds', () async {
@@ -113,13 +92,7 @@ void main() {
 
       expect(calls.single.method, 'setVisibilityCheckInterval');
 
-      expect(
-        calls.single.arguments,
-        {
-          'pixelId': testPixelId,
-          'seconds': 5,
-        },
-      );
+      expect(calls.single.arguments, {'pixelId': testPixelId, 'seconds': 5});
     });
 
     test('getStats returns parsed PixelStats', () async {
@@ -137,10 +110,7 @@ void main() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (_) async => null);
 
-      expect(
-            () => controller.getStats(),
-        throwsException,
-      );
+      expect(() => controller.getStats(), throwsException);
     });
 
     test('multiple controllers use correct pixel ids', () async {
@@ -152,19 +122,9 @@ void main() {
 
       expect(calls, hasLength(2));
 
-      expect(
-        calls[0].arguments,
-        {
-          'pixelId': 'pixel_a',
-        },
-      );
+      expect(calls[0].arguments, {'pixelId': 'pixel_a'});
 
-      expect(
-        calls[1].arguments,
-        {
-          'pixelId': 'pixel_b',
-        },
-      );
+      expect(calls[1].arguments, {'pixelId': 'pixel_b'});
     });
   });
 }

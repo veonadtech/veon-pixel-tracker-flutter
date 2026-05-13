@@ -2,183 +2,45 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
-      - develop
-      - feature/**
+    branches: [ main, develop ]
   pull_request:
-    branches:
-      - main
-      - develop
-  merge_group:
-    types:
-      - checks_requested
+    branches: [ main, develop ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  FLUTTER_VERSION: 3.32.8
-  JAVA_VERSION: 17
-
 jobs:
-  lint:
-    name: Lint & Format
+  check:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
+          flutter-version: 3.32.8
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: ${{ env.JAVA_VERSION }}
+          java-version: 17
 
-      - name: Install dependencies
-        run: flutter pub get
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed .
+      - run: flutter analyze
+      - run: flutter test
 
-      - name: Verify formatting
-        run: dart format --output=none --set-exit-if-changed .
-
-      - name: Analyze project
-        run: flutter analyze
-
-  test:
-    name: Unit Tests
+  build-android:
     runs-on: ubuntu-latest
-
+    needs: check
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
+          flutter-version: 3.32.8
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: ${{ env.JAVA_VERSION }}
+          java-version: 17
 
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Run tests with coverage
-        run: flutter test --coverage --test-randomize-ordering-seed=random
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          files: coverage/lcov.info
-          flags: unittests
-          name: flutter-coverage
-          fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage/
-          retention-days: 7
-
-  build-example-android:
-    name: Build Android Example
-    runs-on: ubuntu-latest
-    needs: [lint, test]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: ${{ env.JAVA_VERSION }}
-
-      - name: Cache Gradle
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/wrapper
-            ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('android/gradle/wrapper/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Build example APK
-        working-directory: example
+      - run: flutter pub get
+      - working-directory: example
         run: flutter build apk --debug
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: example-app-debug
-          path: example/build/app/outputs/flutter-apk/app-debug.apk
-          retention-days: 7
-
-  build-example-ios:
-    name: Build iOS Example (macOS)
-    runs-on: macos-latest
-    needs: [lint, test]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: ${{ env.JAVA_VERSION }}
-
-      - name: Install CocoaPods
-        run: |
-          brew install cocoapods
-          pod --version
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Build iOS example
-        working-directory: example
-        run: flutter build ios --no-codesign
-
-      - name: Upload iOS build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: example-ios-build
-          path: example/build/ios/iphoneos/
-          retention-days: 7

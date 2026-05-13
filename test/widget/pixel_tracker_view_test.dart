@@ -10,10 +10,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: PixelTrackerView(
-              pixelId: 'test_pixel',
-              pixelSize: 40,
-            ),
+            body: PixelTrackerView(pixelId: 'test_pixel', pixelSize: 40),
           ),
         ),
       );
@@ -32,11 +29,7 @@ void main() {
     testWidgets('defaults pixel size to 1', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: PixelTrackerView(
-              pixelId: 'test_pixel',
-            ),
-          ),
+          home: Scaffold(body: PixelTrackerView(pixelId: 'test_pixel')),
         ),
       );
 
@@ -54,26 +47,15 @@ void main() {
     testWidgets('disposes without errors', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: PixelTrackerView(
-              pixelId: 'dispose_test',
-            ),
-          ),
+          home: Scaffold(body: PixelTrackerView(pixelId: 'dispose_test')),
         ),
       );
 
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: SizedBox(),
-          ),
-        ),
+        const MaterialApp(home: Scaffold(body: SizedBox())),
       );
 
-      expect(
-        find.byType(PixelTrackerView),
-        findsNothing,
-      );
+      expect(find.byType(PixelTrackerView), findsNothing);
     });
   });
 }

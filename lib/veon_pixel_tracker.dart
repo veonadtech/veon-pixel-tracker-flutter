@@ -7,8 +7,12 @@ export 'src/models/pixel_stats.dart';
 export 'src/widgets/pixel_tracker_view.dart';
 
 class VeonPixelTracker {
-  static const MethodChannel _methodChannel = MethodChannel("veon_pixel_tracker/sdk");
-  static const EventChannel _eventChannel = EventChannel("veon_pixel_tracker/events");
+  static const MethodChannel _methodChannel = MethodChannel(
+    "veon_pixel_tracker/sdk",
+  );
+  static const EventChannel _eventChannel = EventChannel(
+    "veon_pixel_tracker/events",
+  );
 
   static Stream<Map<String, dynamic>>? _eventStream;
 
@@ -16,9 +20,9 @@ class VeonPixelTracker {
     final existing = _eventStream;
     if (existing != null) return existing;
 
-    final stream = _eventChannel
-        .receiveBroadcastStream()
-        .map((event) => Map<String, dynamic>.from(event as Map));
+    final stream = _eventChannel.receiveBroadcastStream().map(
+      (event) => Map<String, dynamic>.from(event as Map),
+    );
 
     _eventStream = stream;
     return stream;
@@ -56,5 +60,4 @@ class VeonPixelTracker {
       throw Exception("Failed to shutdown: ${e.message}");
     }
   }
-
 }

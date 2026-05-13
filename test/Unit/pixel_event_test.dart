@@ -27,10 +27,7 @@ void main() {
     });
 
     test('isAppearance true only for appearance', () {
-      final event = PixelEvent(
-        'appearance',
-        '2024-01-01T10:00:00Z',
-      );
+      final event = PixelEvent('appearance', '2024-01-01T10:00:00Z');
 
       expect(event.isAppearance, isTrue);
       expect(event.isDisappearance, isFalse);
@@ -39,10 +36,7 @@ void main() {
     });
 
     test('isDisappearance true only for disappearance', () {
-      final event = PixelEvent(
-        'disappearance',
-        '2024-01-01T10:00:00Z',
-      );
+      final event = PixelEvent('disappearance', '2024-01-01T10:00:00Z');
 
       expect(event.isAppearance, isFalse);
       expect(event.isDisappearance, isTrue);
@@ -51,10 +45,7 @@ void main() {
     });
 
     test('isRefresh true only for refresh', () {
-      final event = PixelEvent(
-        'refresh',
-        '2024-01-01T10:00:00Z',
-      );
+      final event = PixelEvent('refresh', '2024-01-01T10:00:00Z');
 
       expect(event.isAppearance, isFalse);
       expect(event.isDisappearance, isFalse);
@@ -76,10 +67,7 @@ void main() {
     });
 
     test('all flags false for unknown type', () {
-      final event = PixelEvent(
-        'unknown',
-        '2024-01-01T10:00:00Z',
-      );
+      final event = PixelEvent('unknown', '2024-01-01T10:00:00Z');
 
       expect(event.isAppearance, isFalse);
       expect(event.isDisappearance, isFalse);
