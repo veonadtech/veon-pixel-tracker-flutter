@@ -17,5 +17,4 @@ class MethodChannelVeonPixelTrackerFlutter
     );
     return version;
   }
-
 }

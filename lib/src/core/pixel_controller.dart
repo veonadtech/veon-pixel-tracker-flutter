@@ -4,8 +4,9 @@ import 'package:veon_pixel_tracker_flutter/src/models/pixel_stats.dart';
 class PixelController {
   final String pixelId;
 
-  static const MethodChannel _methodChannel =
-  MethodChannel("veon_pixel_tracker/sdk");
+  static const MethodChannel _methodChannel = MethodChannel(
+    "veon_pixel_tracker/sdk",
+  );
 
   PixelController(this.pixelId);
 
@@ -46,5 +47,4 @@ class PixelController {
 
     return PixelStats.fromMap(Map<String, dynamic>.from(result));
   }
-
 }

@@ -1,0 +1,41 @@
+name: Setup
+description: Setup Flutter and Java for plugin development
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: zulu
+        java-version: '17'
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: stable
+        cache: true
+        cache-key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.yaml') }}-v2
+
+    - name: Restore pub cache
+      id: pub-cache
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          ~/.pub-cache
+        key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pub-
+
+    - name: Install dependencies
+      if: steps.pub-cache.outputs.cache-hit != 'true'
+      run: flutter pub get
+      shell: bash
+
+    - name: Cache pub dependencies
+      if: steps.pub-cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: |
+          ~/.pub-cache
+        key: ${{ steps.pub-cache.outputs.cache-primary-key }}
